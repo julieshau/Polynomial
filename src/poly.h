@@ -111,6 +111,15 @@ static inline bool PolyIsZero(const Poly *p) {
 }
 
 /**
+ * Sprawdza, czy jednomian jest tożsamościowo równy zeru.
+ * @param[in] m : jednomian
+ * @return Czy jednomian jest równy zeru?
+ */
+static inline bool MonoIsZero(const Mono *m){
+    return PolyIsZero(&m->p);
+}
+
+/**
  * Usuwa wielomian z pamięci.
  * @param[in] p : wielomian
  */
@@ -147,6 +156,17 @@ static inline Mono MonoClone(const Mono *m) {
  * @return @f$p + q@f$
  */
 Poly PolyAdd(const Poly *p, const Poly *q);
+
+/**
+ * Dodaje dwa jednomiany o tym samym wykładniku.
+ * @param[in] lhs : wielomian @f$lhs@f$
+ * @param[in] rhs : wielomian @f$rhs@f$
+ * @return @f$lhs + rhs@f$
+ */
+static inline Mono MonoAdd(const Mono *lhs, const Mono *rhs){
+    assert(lhs->exp == rhs->exp);
+    return (Mono) {.p = PolyAdd(&lhs->p, &rhs->p), .exp = lhs->exp};
+}
 
 /**
  * Sumuje listę jednomianów i tworzy z nich wielomian.

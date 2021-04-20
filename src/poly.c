@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define ERROR_EXIT_STATUS 1
 
@@ -35,4 +36,62 @@ Poly PolyClone(const Poly *p){
         }
         return new_poly;
     }
+}
+
+static poly_exp_t MonoCompare(const void *lhs, const void *rhs){
+    return ((Mono*)lhs)->exp - ((Mono*)rhs)->exp;
+}
+
+static bool PolyIsMono(Poly *p){
+    return p->size == 1;
+}
+
+static bool PolyIsMonoCoef(Poly *p){
+    return (PolyIsMono(p) && MonoGetExp(&p->arr[0]) == 0 && PolyIsCoeff(&p->arr[0].p));
+}
+
+static void PolyOptimize(Poly *p){
+    if (PolyIsMonoCoef(p)){
+        p->coeff = p->arr[0].p.coeff;
+        free(p->arr);
+        p->arr = NULL;
+    }
+    else {
+        p->arr = realloc(p->arr, sizeof(struct Mono) * p->size);
+        if (p->arr == NULL){
+            exit(ERROR_EXIT_STATUS);
+        }
+    }
+}
+
+Poly PolyAddMonos(size_t count, const Mono monos[]){
+    if (count == 0){
+        return PolyZero();
+    }
+    Mono* monos_copy = (Mono*)malloc(sizeof(struct Mono) * count);
+    if (monos_copy == NULL){
+        exit(ERROR_EXIT_STATUS);
+    }
+    memcpy(monos_copy, monos, sizeof(struct Mono) * count);
+
+    qsort(monos_copy, count, sizeof(struct Mono), MonoCompare);
+
+    size_t current = 0;
+    for (size_t next = 1; next < count; ++next) {
+        if (MonoGetExp(&monos_copy[next]) != MonoGetExp(&monos_copy[current])){
+            monos_copy[++current] = monos_copy[next];
+        }
+        else{
+            Mono sum = MonoAdd(&monos_copy[current], &monos_copy[next]);
+            MonoDestroy(&monos_copy[current]);
+            MonoDestroy(&monos_copy[next]);
+            monos_copy[current] = sum;
+            if (MonoIsZero(&sum)){
+                current--;
+            }
+        }
+    }
+    Poly result= (Poly) {.size = ++current, .arr = monos_copy};
+    PolyOptimize(&result);
+    return result;
 }
