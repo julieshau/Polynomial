@@ -95,3 +95,40 @@ Poly PolyAddMonos(size_t count, const Mono monos[]){
     PolyOptimize(&result);
     return result;
 }
+
+static poly_exp_t max(poly_exp_t lhs, poly_exp_t rhs){
+    return (lhs > rhs) ? lhs : rhs;
+}
+
+static poly_exp_t MonoDegBy(const Mono *m, size_t var_idx){
+    return PolyDegBy(&m->p, var_idx);
+}
+
+poly_exp_t PolyDegBy(const Poly *p, size_t var_idx){
+    if (PolyIsCoeff(p)){
+        return PolyIsZero(p) ? -1 : 0;
+    }
+    if (var_idx == 0){
+        return MonoGetExp(&p->arr[p->size - 1]);
+    }
+    else{
+        poly_exp_t result = -1;
+        for (size_t i = 0; i < p->size; ++i){
+            result = max(MonoDegBy(&p->arr[i], var_idx - 1), result);
+        }
+        return result;
+    }
+}
+
+poly_exp_t PolyDeg(const Poly *p){
+    if (PolyIsCoeff(p)){
+        return PolyIsZero(p) ? -1 : 0;
+    }
+    else {
+        poly_exp_t result = -1;
+        for (size_t i = 0; i < p->size; ++i){
+            result = max(MonoDeg(&p->arr[i]), result);
+        }
+        return result;
+    }
+}

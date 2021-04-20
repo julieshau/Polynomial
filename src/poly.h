@@ -220,6 +220,15 @@ poly_exp_t PolyDegBy(const Poly *p, size_t var_idx);
 poly_exp_t PolyDeg(const Poly *p);
 
 /**
+ * Zwraca stopień jednomianu.
+ * @param[in] m : jednomian
+ * @return stopień jednomianu @p m
+ */
+static inline poly_exp_t MonoDeg(const Mono *m){
+    return (PolyDeg(&m->p) + MonoGetExp(m));
+}
+
+/**
  * Sprawdza równość dwóch wielomianów.
  * @param[in] p : wielomian @f$p@f$
  * @param[in] q : wielomian @f$q@f$
