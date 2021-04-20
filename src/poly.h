@@ -237,6 +237,16 @@ static inline poly_exp_t MonoDeg(const Mono *m){
 bool PolyIsEq(const Poly *p, const Poly *q);
 
 /**
+ * Sprawdza równość dwóch jednomianów.
+ * @param[in] rhs : jednomian @f$rhs@f$
+ * @param[in] lhs : jednomian @f$lhs@f$
+ * @return @f$rhs = lhs@f$
+ */
+static inline bool MonoIsEq(const Mono *lhs, const Mono *rhs){
+    return MonoGetExp(lhs) == MonoGetExp(rhs) && PolyIsEq(&lhs->p, &rhs->p);
+}
+
+/**
  * Wylicza wartość wielomianu w punkcie @p x.
  * Wstawia pod pierwszą zmienną wielomianu wartość @p x.
  * W wyniku może powstać wielomian, jeśli współczynniki są wielomianami.

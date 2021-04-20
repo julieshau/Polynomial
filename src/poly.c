@@ -132,3 +132,25 @@ poly_exp_t PolyDeg(const Poly *p){
         return result;
     }
 }
+
+bool PolyIsEq(const Poly *p, const Poly *q){
+    if (PolyIsCoeff(p) == PolyIsCoeff(q)){
+        if (PolyIsCoeff(p)){
+            return p->coeff == q->coeff;
+        }
+        else if (p->size != q->size){
+            return false;
+        }
+        else {
+            for (size_t i = 0; i < p->size; ++i){
+                if (!MonoIsEq(&p->arr[i], &q->arr[i])){
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    else {
+        return false;
+    }
+}
