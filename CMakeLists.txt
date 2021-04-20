@@ -23,7 +23,7 @@ set(CMAKE_C_FLAGS "-std=c11 -Wall -Wextra")
 set(SOURCE_FILES
     src/poly.c
     src/poly.h
-    src/poly_example.c)
+    src/poly_example.c src/poly.c)
 
 # Wskazujemy plik wykonywalny.
 add_executable(poly ${SOURCE_FILES})
