@@ -5,6 +5,7 @@
 #include <string.h>
 
 #define ERROR_EXIT_STATUS 1
+#define EXP_MIN (-1)
 
 void PolyDestroy(Poly *p){
     if (!PolyIsCoeff(p)){
@@ -109,10 +110,10 @@ poly_exp_t PolyDegBy(const Poly *p, size_t var_idx){
         return PolyIsZero(p) ? -1 : 0;
     }
     if (var_idx == 0){
-        return MonoGetExp(&p->arr[p->size - 1]);
+        return MonoGetExp(&p->arr[p->size - 1]);//array of mono is sorted(creation of poly from mono array), last elt has largest exp
     }
     else{
-        poly_exp_t result = -1;
+        poly_exp_t result = EXP_MIN;
         for (size_t i = 0; i < p->size; ++i){
             result = max(MonoDegBy(&p->arr[i], var_idx - 1), result);
         }
@@ -125,7 +126,7 @@ poly_exp_t PolyDeg(const Poly *p){
         return PolyIsZero(p) ? -1 : 0;
     }
     else {
-        poly_exp_t result = -1;
+        poly_exp_t result = EXP_MIN;
         for (size_t i = 0; i < p->size; ++i){
             result = max(MonoDeg(&p->arr[i]), result);
         }
@@ -160,4 +161,75 @@ Poly PolySub(const Poly *p, const Poly *q){
     Poly result = PolyAdd(p, &temp);
     PolyDestroy(&temp);
     return result;
+}
+
+Poly PolyNeg(const Poly *p){
+    Poly neg = PolyFromCoeff(-1);
+    return PolyMul(p, &neg);
+}
+
+static Poly CoefMulCoef(poly_coeff_t p, poly_coeff_t q){
+    return PolyFromCoeff(p * q);
+}
+
+//?add monoiscoef
+static Poly PolyMulCoef(const Poly *p, poly_coeff_t q){
+    if (q == 0) {
+        return PolyZero();
+    }
+    Poly result = PolyInit(p->size);
+    result.size = 0;
+    for (size_t i = 0; i < p->size; ++i){
+        Poly mul;
+        if (PolyIsCoeff(&p->arr[i].p)){
+            mul = CoefMulCoef(p->arr[i].p.coeff, q);
+        }
+        else {
+            mul = PolyMulCoef(&p->arr[i].p, q);
+        }
+        Mono mono = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]));
+        if (!MonoIsZero(&mono)){
+            result.arr[result.size++] = mono;
+        }
+    }
+    PolyOptimize(&result);
+    return result;
+}
+
+static Poly PolyMulPoly(const Poly *p,const Poly *q){
+    size_t init_size = p->size * q->size;
+    Mono* init_arr = (Mono*)malloc(sizeof(struct Mono) * init_size);
+    if (init_arr == NULL){
+        exit(ERROR_EXIT_STATUS);
+    }
+    size_t current = 0;
+    for (size_t i = 0; i < p->size; ++i) {
+        for (size_t j = 0; i < q->size; ++j){
+            Poly mul = PolyMul(&p->arr[i].p, &q->arr[j].p);
+            init_arr[current] = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]) * MonoGetExp(&q->arr[j]));
+            current++;
+        }
+    }
+    Poly result = PolyAddMonos(init_size, init_arr);
+    free(init_arr);
+    return result;
+}
+
+Poly PolyMul(const Poly *p, const Poly *q){
+    if (PolyIsCoeff(p) == PolyIsCoeff(q)){
+        if (PolyIsCoeff(p)){
+            return CoefMulCoef(p->coeff, q->coeff);
+        }
+        else{
+            return PolyMulPoly(p, q);
+        }
+    }
+    else{
+        if (PolyIsCoeff(p)){
+            return PolyMulCoef(p, q->coeff);
+        }
+        else{
+            return PolyMulCoef(q, p->coeff);
+        }
+    }
 }
