@@ -154,3 +154,10 @@ bool PolyIsEq(const Poly *p, const Poly *q){
         return false;
     }
 }
+
+Poly PolySub(const Poly *p, const Poly *q){
+    Poly temp = PolyNeg(q);
+    Poly result = PolyAdd(p, &temp);
+    PolyDestroy(&temp);
+    return result;
+}
