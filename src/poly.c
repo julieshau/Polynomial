@@ -233,3 +233,98 @@ Poly PolyMul(const Poly *p, const Poly *q){
         }
     }
 }
+
+static Poly CoefAddCoef(poly_coeff_t p, poly_coeff_t q){
+    return PolyFromCoeff(p + q);
+}
+
+static Poly PolyAddCoef(const Poly *p, poly_coeff_t q){
+    if (q == 0) {
+        return PolyClone(p);
+    }
+    assert(p->size > 0);
+    if (MonoGetExp(&p->arr[0]) == 0){
+        Poly sum;
+        if (PolyIsCoeff(&p->arr[0].p)){
+            sum = CoefMulCoef(p->arr[0].p.coeff, q);
+        }
+        else {
+            sum = PolyMulCoef(&p->arr[0].p, q);
+        }
+        Mono mono = MonoFromPoly(&sum, MonoGetExp(&p->arr[0]));
+        Poly result = PolyInit(p->size);
+        if (!MonoIsZero(&mono)){
+            result.arr[0] = mono;
+        }
+    }
+    else {
+        Poly result = PolyInit(p->size + 1);
+        Poly poly = PolyFromCoeff(q);
+        result.arr[0] = MonoFromPoly(&poly,0);
+        for (size_t i = 0; i < p->size; ++i) {
+            result.arr[i + 1] = MonoClone(&p->arr[i]);
+        }
+        return result;
+    }
+
+}
+
+static Poly PolyAddPoly(const Poly *p, const Poly *q){
+    Poly result = PolyInit(p->size + q ->size);
+    size_t i = 0;
+    size_t j = 0;
+    size_t current = 0;
+    while (i < p->size && j < q->size){
+        poly_exp_t p_exp = MonoGetExp(&p->arr[i]);
+        poly_exp_t q_exp = MonoGetExp(&q->arr[i]);
+        if (p_exp < q_exp){
+            result.arr[current] = MonoClone(&p->arr[i]);
+            i++;
+        }
+        else if (p_exp > q_exp){
+            result.arr[current] = MonoClone(&q->arr[j]);
+            j++;
+        }
+        else {
+            Mono sum = MonoAdd(&p->arr[i], &q->arr[j]);
+            if (!MonoIsZero(&sum)){
+                result.arr[current] = sum;
+            }
+            i++;
+            j++;
+        }
+        current++;
+    }
+    while (i < p->size) {
+        result.arr[current] = MonoClone(&p->arr[i]);
+        i++;
+        current++;
+    }
+    while (j < q->size) {
+        result.arr[current] = MonoClone(&q->arr[j]);
+        j++;
+        current++;
+    }
+    result.size = current;
+    PolyOptimize(&result);
+    return result;
+}
+
+Poly PolyAdd(const Poly *p, const Poly *q){
+    if (PolyIsCoeff(p) == PolyIsCoeff(q)){
+        if (PolyIsCoeff(p)){
+            return CoefAddCoef(p->coeff, q->coeff);
+        }
+        else{
+            return PolyAddPoly(p,q);
+        }
+    }
+    else{
+        if (PolyIsCoeff(p)){
+            return PolyAddCoef(p, q->coeff);
+        }
+        else{
+            return PolyAddCoef(q, p->coeff);
+        }
+    }
+}
