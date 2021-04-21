@@ -1,7 +1,6 @@
 #include "poly.h"
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #define ERROR_EXIT_STATUS 1
@@ -243,7 +242,10 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q){
         return PolyClone(p);
     }
     assert(p->size > 0);
+    Poly result;
     if (MonoGetExp(&p->arr[0]) == 0){
+        size_t current = 0;
+
         Poly sum;
         if (PolyIsCoeff(&p->arr[0].p)){
             sum = CoefMulCoef(p->arr[0].p.coeff, q);
@@ -252,21 +254,26 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q){
             sum = PolyMulCoef(&p->arr[0].p, q);
         }
         Mono mono = MonoFromPoly(&sum, MonoGetExp(&p->arr[0]));
-        Poly result = PolyInit(p->size);
         if (!MonoIsZero(&mono)){
-            result.arr[0] = mono;
+            result = PolyInit(p->size);
+            result.arr[current++] = mono;
+        }
+        else {
+            result = PolyInit(p->size - 1);
+        }
+        for (size_t i = 1; i < p->size; ++i) {
+            result.arr[current++] = MonoClone(&p->arr[i]);
         }
     }
     else {
-        Poly result = PolyInit(p->size + 1);
+        result = PolyInit(p->size + 1);
         Poly poly = PolyFromCoeff(q);
         result.arr[0] = MonoFromPoly(&poly,0);
         for (size_t i = 0; i < p->size; ++i) {
             result.arr[i + 1] = MonoClone(&p->arr[i]);
         }
-        return result;
     }
-
+    return result;
 }
 
 static Poly PolyAddPoly(const Poly *p, const Poly *q){
@@ -280,20 +287,22 @@ static Poly PolyAddPoly(const Poly *p, const Poly *q){
         if (p_exp < q_exp){
             result.arr[current] = MonoClone(&p->arr[i]);
             i++;
+            current++;
         }
         else if (p_exp > q_exp){
             result.arr[current] = MonoClone(&q->arr[j]);
             j++;
+            current++;
         }
         else {
             Mono sum = MonoAdd(&p->arr[i], &q->arr[j]);
             if (!MonoIsZero(&sum)){
                 result.arr[current] = sum;
+                current++;
             }
             i++;
             j++;
         }
-        current++;
     }
     while (i < p->size) {
         result.arr[current] = MonoClone(&p->arr[i]);
