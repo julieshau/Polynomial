@@ -337,3 +337,28 @@ Poly PolyAdd(const Poly *p, const Poly *q){
         }
     }
 }
+
+//todo power
+Poly PolyAt(const Poly *p, poly_coeff_t x){
+    if (PolyIsCoeff(p)) {
+        return PolyClone(p);
+    }
+    /* Monos in poly are always sorted by exp. To avoid counting x^n for every mono in poly,
+     * we count x^n for current mono and difference m-n (next mono has greater exp m).
+     * So x^m = x^n * x^(m-n)  */
+    poly_coeff_t x_power_value = 1;
+    poly_exp_t current_exp;
+    Poly result = PolyZero();
+    for (size_t i = 0; i < p->size; ++i) {
+        poly_exp_t previous_exp = current_exp;
+        current_exp = MonoGetExp(&p->arr[i]);
+        poly_exp_t exp_difference = current_exp - previous_exp;//m-n
+        x_power_value *= power(x, exp_difference); //x^n * x^(m-n)
+        Poly current_mono_evaluated = PolyMulCoef(&p->arr[i].p, x_power_value);
+        Poly new_result = PolyAdd(&current_mono_evaluated, &result);
+        PolyDestroy(&result);
+        result = new_result;
+        PolyDestroy(&current_mono_evaluated);
+    }
+    return result;
+}
