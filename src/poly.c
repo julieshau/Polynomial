@@ -6,6 +6,11 @@
 #define ERROR_EXIT_STATUS 1
 #define EXP_MIN (-1)
 
+//todo comments
+//todo style
+//todo gitlab tests
+//todo polyaddmonos copy ask
+
 void PolyDestroy(Poly *p){
     if (!PolyIsCoeff(p)){
         for (size_t i = 0; i < p->size; ++i) {
@@ -16,7 +21,6 @@ void PolyDestroy(Poly *p){
     }
 }
 
-//todo comment
 static Poly PolyInit(size_t size){
     Mono* init_arr = (Mono*)malloc(sizeof(struct Mono) * size);
     if (init_arr == NULL){
@@ -189,6 +193,7 @@ static Poly PolyMulCoef(const Poly *p, poly_coeff_t q){
     if (q == 0) {
         return PolyZero();
     }
+    assert(p->size > 0);
     Poly result = PolyInit(p->size);
     result.size = 0;
     for (size_t i = 0; i < p->size; ++i){
@@ -199,14 +204,18 @@ static Poly PolyMulCoef(const Poly *p, poly_coeff_t q){
         else {
             mul = PolyMulCoef(&p->arr[i].p, q);
         }
-        Mono mono = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]));
-        if (!MonoIsZero(&mono)){
+        if (!PolyIsZero(&mul)){ //skip zero
+            Mono mono = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]));
             result.arr[result.size++] = mono;
         }
         /* Note: we don't destroy anything here.
          * 1. mono owns mul -> no need to destroy mul
-         * 2.1(Mono isn't zero) result owns mono
-         * 2.2(Mono is zero) Mono's coef(Poly) is zero -> no arrays -> nothing to destroy*/
+         * 2.1(mul isn't zero) result owns mono
+         * 2.2(mul is zero) -> no arrays -> nothing to destroy*/
+    }
+    if (result.size == 0){ //there were only zeros, nothing was written to the result
+        free(result.arr); //we don't use destroy function, because result is uninitialized value
+        return PolyZero();
     }
     PolyOptimize(&result);
     return result;
@@ -220,10 +229,12 @@ static Poly PolyMulPoly(const Poly *p,const Poly *q){
     }
     size_t current = 0;
     for (size_t i = 0; i < p->size; ++i) {
-        for (size_t j = 0; i < q->size; ++j){
+        for (size_t j = 0; j < q->size; ++j){
             Poly mul = PolyMul(&p->arr[i].p, &q->arr[j].p);
-            init_arr[current] = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]) * MonoGetExp(&q->arr[j]));
-            current++;
+            if (!PolyIsZero(&mul)) { //skip zero
+                init_arr[current] = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]) + MonoGetExp(&q->arr[j]));
+                current++;
+            }
         }
     }
     Poly result = PolyAddMonos(init_size, init_arr);//we use this function to restore broken order and uniqueness of exp
@@ -242,10 +253,10 @@ Poly PolyMul(const Poly *p, const Poly *q){
     }
     else{
         if (PolyIsCoeff(p)){
-            return PolyMulCoef(p, q->coeff);
+            return PolyMulCoef(q, p->coeff);
         }
         else{
-            return PolyMulCoef(q, p->coeff);
+            return PolyMulCoef(p, q->coeff);
         }
     }
 }
@@ -265,13 +276,13 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q){
 
         Poly sum;
         if (PolyIsCoeff(&p->arr[0].p)){
-            sum = CoefMulCoef(p->arr[0].p.coeff, q);
+            sum = CoefAddCoef(p->arr[0].p.coeff, q);
         }
         else {
-            sum = PolyMulCoef(&p->arr[0].p, q);
+            sum = PolyAddCoef(&p->arr[0].p, q);
         }
-        Mono mono = MonoFromPoly(&sum, MonoGetExp(&p->arr[0]));
-        if (!MonoIsZero(&mono)){
+        if (!PolyIsZero(&sum)){
+            Mono mono = MonoFromPoly(&sum, MonoGetExp(&p->arr[0]));
             result = PolyInit(p->size);
             result.arr[current++] = mono;
         }
@@ -300,7 +311,7 @@ static Poly PolyAddPoly(const Poly *p, const Poly *q){
     size_t current = 0;
     while (i < p->size && j < q->size){
         poly_exp_t p_exp = MonoGetExp(&p->arr[i]);
-        poly_exp_t q_exp = MonoGetExp(&q->arr[i]);
+        poly_exp_t q_exp = MonoGetExp(&q->arr[j]);
         if (p_exp < q_exp){
             result.arr[current] = MonoClone(&p->arr[i]);
             i++;
@@ -337,6 +348,10 @@ static Poly PolyAddPoly(const Poly *p, const Poly *q){
         j++;
         current++;
     }
+    if (current == 0){ //there were only zeros, nothing was written to the result
+        free(result.arr); //we don't use destroy function, because result is uninitialized value
+        return PolyZero();
+    }
     result.size = current;
     PolyOptimize(&result);
     return result;
@@ -353,10 +368,10 @@ Poly PolyAdd(const Poly *p, const Poly *q){
     }
     else{
         if (PolyIsCoeff(p)){
-            return PolyAddCoef(p, q->coeff);
+            return PolyAddCoef(q, p->coeff);
         }
         else{
-            return PolyAddCoef(q, p->coeff);
+            return PolyAddCoef(p, q->coeff);
         }
     }
 }
@@ -384,7 +399,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x){
      * we count x^n for current mono and difference m-n (next mono has greater exp m).
      * So x^m = x^n * x^(m-n)  */
     poly_coeff_t x_power_value = 1;
-    poly_exp_t current_exp;
+    poly_exp_t current_exp = 0;
     Poly result = PolyZero();
     for (size_t i = 0; i < p->size; ++i) {
         poly_exp_t previous_exp = current_exp;
@@ -393,7 +408,13 @@ Poly PolyAt(const Poly *p, poly_coeff_t x){
 
         x_power_value *= Power(x, exp_difference); //x^n * x^(m-n)
 
-        Poly current_mono_evaluated = PolyMulCoef(&p->arr[i].p, x_power_value);
+        Poly current_mono_evaluated;
+        if (PolyIsCoeff(&p->arr[i].p)){
+            current_mono_evaluated = CoefMulCoef(p->arr[i].p.coeff, x_power_value);
+        }
+        else {
+            current_mono_evaluated = PolyMulCoef(&p->arr[i].p, x_power_value);
+        }
         Poly new_result = PolyAdd(&current_mono_evaluated, &result);
 
         PolyDestroy(&result);
