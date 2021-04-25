@@ -27,18 +27,18 @@ struct Mono;
  * (wtedy `arr == NULL`), albo niepustą listą jednomianów (wtedy `arr != NULL`).
  */
 typedef struct Poly {
-  /**
-  * To jest unia przechowująca współczynnik wielomianu lub
-  * liczbę jednomianów w wielomianie.
-  * Jeżeli `arr == NULL`, wtedy jest to współczynnik będący liczbą całkowitą.
-  * W przeciwnym przypadku jest to niepusta lista jednomianów.
-  */
-  union {
-    poly_coeff_t coeff; ///< współczynnik
-    size_t       size; ///< rozmiar wielomianu, liczba jednomianów
-  };
-  /** To jest tablica przechowująca listę jednomianów. */
-  struct Mono *arr;
+    /**
+    * To jest unia przechowująca współczynnik wielomianu lub
+    * liczbę jednomianów w wielomianie.
+    * Jeżeli `arr == NULL`, wtedy jest to współczynnik będący liczbą całkowitą.
+    * W przeciwnym przypadku jest to niepusta lista jednomianów.
+    */
+    union {
+        poly_coeff_t coeff; ///< współczynnik
+        size_t size; ///< rozmiar wielomianu, liczba jednomianów
+    };
+    /** To jest tablica przechowująca listę jednomianów. */
+    struct Mono *arr;
 } Poly;
 
 /**
@@ -48,8 +48,8 @@ typedef struct Poly {
  * wielomianem nad kolejną zmienną @f$x_{i+1}@f$.
  */
 typedef struct Mono {
-  Poly p; ///< współczynnik
-  poly_exp_t exp; ///< wykładnik
+    Poly p; ///< współczynnik
+    poly_exp_t exp; ///< wykładnik
 } Mono;
 
 /**
@@ -58,7 +58,7 @@ typedef struct Mono {
  * @return wartość wykładnika jednomianu
  */
 static inline poly_exp_t MonoGetExp(const Mono *m) {
-  return m->exp;
+    return m->exp;
 }
 
 /**
@@ -67,7 +67,7 @@ static inline poly_exp_t MonoGetExp(const Mono *m) {
  * @return wielomian
  */
 static inline Poly PolyFromCoeff(poly_coeff_t c) {
-  return (Poly) {.coeff = c, .arr = NULL};
+    return (Poly) {.coeff = c, .arr = NULL};
 }
 
 /**
@@ -75,7 +75,7 @@ static inline Poly PolyFromCoeff(poly_coeff_t c) {
  * @return wielomian
  */
 static inline Poly PolyZero(void) {
-  return PolyFromCoeff(0);
+    return PolyFromCoeff(0);
 }
 
 static inline bool PolyIsZero(const Poly *p);
@@ -88,8 +88,8 @@ static inline bool PolyIsZero(const Poly *p);
  * @return jednomian @f$px_i^n@f$
  */
 static inline Mono MonoFromPoly(const Poly *p, poly_exp_t n) {
-  assert(n == 0 || !PolyIsZero(p));
-  return (Mono) {.p = *p, .exp = n};
+    assert(n == 0 || !PolyIsZero(p));
+    return (Mono) {.p = *p, .exp = n};
 }
 
 /**
@@ -98,7 +98,7 @@ static inline Mono MonoFromPoly(const Poly *p, poly_exp_t n) {
  * @return Czy wielomian jest współczynnikiem?
  */
 static inline bool PolyIsCoeff(const Poly *p) {
-  return p->arr == NULL;
+    return p->arr == NULL;
 }
 
 /**
@@ -107,7 +107,7 @@ static inline bool PolyIsCoeff(const Poly *p) {
  * @return Czy wielomian jest równy zeru?
  */
 static inline bool PolyIsZero(const Poly *p) {
-  return PolyIsCoeff(p) && p->coeff == 0;
+    return PolyIsCoeff(p) && p->coeff == 0;
 }
 
 /**
@@ -115,7 +115,7 @@ static inline bool PolyIsZero(const Poly *p) {
  * @param[in] m : jednomian
  * @return Czy jednomian jest równy zeru?
  */
-static inline bool MonoIsZero(const Mono *m){
+static inline bool MonoIsZero(const Mono *m) {
     return PolyIsZero(&m->p);
 }
 
@@ -130,7 +130,7 @@ void PolyDestroy(Poly *p);
  * @param[in] m : jednomian
  */
 static inline void MonoDestroy(Mono *m) {
-  PolyDestroy(&m->p);
+    PolyDestroy(&m->p);
 }
 
 /**
@@ -146,7 +146,7 @@ Poly PolyClone(const Poly *p);
  * @return skopiowany jednomian
  */
 static inline Mono MonoClone(const Mono *m) {
-  return (Mono) {.p = PolyClone(&m->p), .exp = m->exp};
+    return (Mono) {.p = PolyClone(&m->p), .exp = m->exp};
 }
 
 /**
@@ -163,7 +163,7 @@ Poly PolyAdd(const Poly *p, const Poly *q);
  * @param[in] rhs : wielomian @f$rhs@f$
  * @return @f$lhs + rhs@f$
  */
-static inline Mono MonoAdd(const Mono *lhs, const Mono *rhs){
+static inline Mono MonoAdd(const Mono *lhs, const Mono *rhs) {
     assert(lhs->exp == rhs->exp);
     return (Mono) {.p = PolyAdd(&lhs->p, &rhs->p), .exp = lhs->exp};
 }
@@ -224,7 +224,7 @@ poly_exp_t PolyDeg(const Poly *p);
  * @param[in] m : jednomian
  * @return stopień jednomianu @p m
  */
-static inline poly_exp_t MonoDeg(const Mono *m){
+static inline poly_exp_t MonoDeg(const Mono *m) {
     return (PolyDeg(&m->p) + MonoGetExp(m));
 }
 
@@ -242,7 +242,7 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  * @param[in] lhs : jednomian @f$lhs@f$
  * @return @f$rhs = lhs@f$
  */
-static inline bool MonoIsEq(const Mono *lhs, const Mono *rhs){
+static inline bool MonoIsEq(const Mono *lhs, const Mono *rhs) {
     return MonoGetExp(lhs) == MonoGetExp(rhs) && PolyIsEq(&lhs->p, &rhs->p);
 }
 
