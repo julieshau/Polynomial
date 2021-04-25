@@ -276,7 +276,7 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q){
             result.arr[current++] = mono;
         }
         else {
-            result = PolyInit(p->size - 1);
+            result = PolyInit(p->size - 1); //skip zero
         }
         for (size_t i = 1; i < p->size; ++i) {
             result.arr[current++] = MonoClone(&p->arr[i]);
@@ -361,7 +361,21 @@ Poly PolyAdd(const Poly *p, const Poly *q){
     }
 }
 
-//todo power
+//Source: https://www.geeksforgeeks.org/modular-exponentiation-power-in-modular-arithmetic/
+static poly_coeff_t Power(poly_coeff_t base, poly_exp_t exp){
+    poly_coeff_t result = 1;
+    while (exp > 0){
+        // If exp is odd, multiply base with result
+        if ((exp & 1) != 0) {
+            result *= base;
+        }
+        // exp must be even now
+        exp = exp >> 1; // exp = exp/2
+        base *= base;  // Change base to base^2
+    }
+    return result;
+}
+
 Poly PolyAt(const Poly *p, poly_coeff_t x){
     if (PolyIsCoeff(p)) {
         return PolyClone(p);
@@ -377,7 +391,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x){
         current_exp = MonoGetExp(&p->arr[i]);
         poly_exp_t exp_difference = current_exp - previous_exp;//m-n
 
-        x_power_value *= power(x, exp_difference); //x^n * x^(m-n)
+        x_power_value *= Power(x, exp_difference); //x^n * x^(m-n)
 
         Poly current_mono_evaluated = PolyMulCoef(&p->arr[i].p, x_power_value);
         Poly new_result = PolyAdd(&current_mono_evaluated, &result);
