@@ -86,19 +86,25 @@ Poly PolyAddMonos(size_t count, const Mono monos[]){
     /*From this moments for each exp there is only one Mono in Poly with such exp*/
     size_t current = 0;
     for (size_t next = 1; next < count; ++next) {
-        if (MonoGetExp(&monos_copy[next]) != MonoGetExp(&monos_copy[current])){
-            monos_copy[++current] = monos_copy[next];
+        if (MonoGetExp(&monos_copy[next]) != MonoGetExp(&monos_copy[current])){ //new unique exp
+            if (MonoIsZero(&monos_copy[current])){
+                monos_copy[current] = monos_copy[next]; //skip zero(replace with new mono)
+            }
+            else {
+                monos_copy[++current] = monos_copy[next]; //add new mono
+            }
         }
         else{
             Mono sum = MonoAdd(&monos_copy[current], &monos_copy[next]);
             MonoDestroy(&monos_copy[current]);
             MonoDestroy(&monos_copy[next]);
-            monos_copy[current] = sum;
-            if (MonoIsZero(&sum)){
-                current--; //todo potential bug
-            }
+            monos_copy[current] = sum; //zero may appear, we'll get rid of it in next iteration
         }
     }
+    if (current != 0 && MonoIsZero(&monos_copy[current])){ //we need to get rid of last zero. If last zero is the only element we leave it
+        current--;
+    }
+
     Poly result= (Poly) {.size = ++current, .arr = monos_copy};
     PolyOptimize(&result);
     return result;
