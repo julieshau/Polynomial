@@ -237,7 +237,13 @@ static Poly PolyMulPoly(const Poly *p,const Poly *q){
             }
         }
     }
-    Poly result = PolyAddMonos(init_size, init_arr);//we use this function to restore broken order and uniqueness of exp
+    Poly result;
+    if (current == 0){
+        result = PolyZero();
+    }
+    else {
+        result = PolyAddMonos(current, init_arr);//we use this function to restore broken order and uniqueness of exp
+    }
     free(init_arr);
     return result;
 }
