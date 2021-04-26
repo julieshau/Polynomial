@@ -8,8 +8,49 @@ Uwaga: aktualna treść zadania znajduje się w [Moodle](https://moodle.mimuw.ed
 ### Opis programu
 
 Tegoroczne duże zadanie polega na zaimplementowaniu operacji na wielomianach
-rzadkich wielu zmiennych.
+rzadkich wielu zmiennych o współczynnikach całkowitych. Zmienne wielomianu
+oznaczamy @f$x_0, x_1, x_2@f$ itd. Definicja wielomianu jest rekurencyjna. Wielomian
+jest sumą jednomianów postaci @f$p*x_0^{n}@f$, gdzie @f$n@f$ jest wykładnikiem tego jednomianu
+będącym nieujemną liczbą całkowitą, a @f$p@f$ jest współczynnikiem, który jest wielomianem.
+Współczynnik w jednomianie zmiennej @f$x_{i}@f$ jest sumą jednomianów zmiennej @f$x_{i+1}@f$. Rekurencja
+kończy się, gdy współczynnik jest liczbą (czyli wielomianem stałym), a nie sumą kolejnych
+jednomianów. Wykładniki jednomianów w każdej z rozważanych sum są parami różne. Wielomiany
+są rzadkie, co oznacza, że stopień wielomianu może być znacznie większy niż liczba składowych jednomianów.
 
-TODO
+### Najważniejsze dostępne operacje i szczególy implementacji
 
+Dążymy do tego, aby wielomian był zawsze w formie uproszczonej(wielomiany postaci @f$cx^{0}@f$ i @f$0x^{n}@f$
+są zawsze upraszczane do @f$c@f$ i @f$0@f$), miał posortowane według wykładniku jednomiany.
+
+- Tworzenie wielomianu
+
+    Dostępne są 3 rodzaje tej operacji: tworzenie wielomianu tożsamościowo równego zeru, tworzenie wielomianu stałego,
+    tworzenie wielomianu z tablicy jednomianów.
+    - Tworzenie wielomianu z tablicy jednomianów
+
+        Funkcja sortuje tablicę jednomianów według wykładnika i sumuje jednomiany o tym samym wykładniku.
+        Więc dla każdego wykładnika istnieje dokładnie jeden jednomian w wielomianie z takim wykładnikiem.
+        Ponadto funkcja zapewnia brak zerowych jednomianów w nowym wielomianie.
+        Wielomiany postaci @f$cx^{0}@f$ i @f$0x^{n}@f$ są zawsze upraszczane do @f$c@f$ i @f$0@f$
+- Dodawanie
+
+    Operacja jest podzielona na trzy przypadki w zależności od tego, czy wielomian jest stały. Sumują się jednomiany
+    o tym samym wykładniku. Zera w wynikowym wielomianie są pomijane. Wynik jest w formie uproszczonej.
+- Mnożenie
+
+    Operacja jest podzielona na trzy przypadki w zależności od tego, czy wielomian jest stały. Przywraca
+    zepsuty porządek jednomianów. Zera w wynikowym wielomianie są pomijane. Wynik jest w formie uproszczonej.
+- Odejmowanie
+
+    To samo so dodawanie wielomianu odwrotnego.
+- Tworzenie wielomianu odwrotnego
+- Obliczenie wartośći wielomianu w punkcie x
+
+    Funkcja wstawia pod pierwszą zmienną wielomianu wartość @f$x@f$. Czyli dla każdego jednomianu tworzy
+    wielomian: wylicza wartośc @f$x^{k}@f$ i stosuje mnożenie wielomianu(współczynnik jednomianu) przez
+    liczbę. Wynik jest sumą wszystkich wielomianów utworzonych w ten sposób.
+- Sprawdzanie równośći dwóch wielomianów
+
+    Sprawdzanie równości jednomianów należących do wielomianów.
+- Obliczanie stopnia wielomianu
 */
