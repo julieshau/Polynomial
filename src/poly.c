@@ -1,15 +1,23 @@
+/** @file
+  Implementacja klasy wielomianów rzadkich wielu zmiennych
+
+  @authors Yuliya Shauchuk <ys423496@students.mimuw.edu.pl>
+  @copyright Uniwersytet Warszawski
+  @date 2021
+*/
 #include "poly.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * Kod zakończenia.
+ * Jeśli wystąpi błąd krytyczny, np. zabraknie pamięci, program powinien zakończyć się awaryjnie kodem 1.
+*/
 #define ERROR_EXIT_STATUS 1
+/** Minimalna wartość wykładnika wielomianu */
 #define EXP_MIN (-1)
 
-//todo comments
-//todo style
-//todo gitlab tests
-//todo polyaddmonos copy ask
 
 void PolyDestroy(Poly *p) {
     if (!PolyIsCoeff(p)) {
@@ -21,6 +29,11 @@ void PolyDestroy(Poly *p) {
     }
 }
 
+/**
+ * Alokuje pamięć dla nowego wielomianu o @p size jednomianach.
+ * @param[in] size : liczba jednomianów
+ * @return nowy wielomian
+ */
 static Poly PolyInit(size_t size) {
     Mono *init_arr = (Mono *) malloc(sizeof(struct Mono) * size);
     if (init_arr == NULL) {
@@ -41,22 +54,51 @@ Poly PolyClone(const Poly *p) {
     }
 }
 
+/**
+ * Porównuje dwa jenomiany według wykładników.
+ * @param[in] lhs : wskaźnik na jednomian
+ * @param[in] rhs : wskaźnik na jednomian
+ * @return wynik porównania,
+ *        - dodatnia wartość całkowita, jeśli pierwszy argument jest większy niż drugi,
+ *        - ujemna wartość całkowita, jeśli pierwszy argument jest mniejszy niż drugi,
+ *        - zero, jeśli argumenty są równoważne
+ */
 static poly_exp_t MonoCompare(const void *lhs, const void *rhs) {
     return ((Mono *) lhs)->exp - ((Mono *) rhs)->exp;
 }
 
+/**
+ * Sprawdza, czy wielomian składa się z jednego jednomianu (czy wielomian jest jednomianem).
+ * @param[in] p : wielomian
+ * @return Czy wielomian jest jednomianem?
+ */
 static bool PolyIsMono(Poly *p) {
     return p->size == 1;
 }
 
+/**
+ * Sprawdza, czy wielomian jest współczynnikiem w formie nie uproszczonej.
+ * @param[in] p : wielomian
+ * @return Czy wielomian jest współczynnikiem w formie nie uproszczonej?
+ */
 static bool PolyIsMonoCoef(Poly *p) {
     return (PolyIsMono(p) && MonoGetExp(&p->arr[0]) == 0 && PolyIsCoeff(&p->arr[0].p));
 }
 
+/**
+ * Sprawdza, czy wielomian w formie nie uproszczonej jest tożsamościowo równy zeru.
+ * @param[in] p : wielomian
+ * @return Czy wielomian w formie nie uproszczonej jest tożsamościowo równy zeru?
+ */
 static bool PolyIsMonoZero(Poly *p) {
     return (PolyIsMono(p) && PolyIsZero(&p->arr[0].p));
 }
 
+/**
+ * Upraszcza wielomian.
+ * @param[in] p : wielomian
+ * @return wielomian uproszczony
+ */
 static void PolyOptimize(Poly *p) {
     if (PolyIsMonoCoef(p) || PolyIsMonoZero(p)) {
         p->coeff = p->arr[0].p.coeff;
@@ -111,10 +153,22 @@ Poly PolyAddMonos(size_t count, const Mono monos[]) {
     return result;
 }
 
+/**
+ * Zwraca większy z dwóch wykładników.
+ * @param[in] lhs : wykładnik @f$lhs@f$
+ * @param[in] rhs : wykładnik @f$rhs@f$
+ * @return największy wykładnik z @p lhs i @p rhs. Jeśli oba są równoważne, zwracane jest @p rhs.
+ */
 static poly_exp_t max(poly_exp_t lhs, poly_exp_t rhs) {
     return (lhs > rhs) ? lhs : rhs;
 }
 
+/**
+ * Zwraca stopień współczynnika jednomianu ze względu na zadaną zmienną.
+ * @param[in] m : jednomian
+ * @param[in] var_idx : indeks zmiennej
+ * @return stopień współczynnika jednomianu @p m z względu na zmienną o indeksie @p var_idx
+ */
 static poly_exp_t MonosCoefDegBy(const Mono *m, size_t var_idx) {
     return PolyDegBy(&m->p, var_idx);
 }
@@ -177,10 +231,22 @@ Poly PolyNeg(const Poly *p) {
     return PolyMul(p, &neg);
 }
 
+/**
+ * Mnoży dwa wielomiany stałe (które są współczynnikiem).
+ * @param[in] p : współczynnik @f$p@f$
+ * @param[in] q : współczynnik @f$q@f$
+ * @return @f$p * q@f$
+ */
 static Poly CoefMulCoef(poly_coeff_t p, poly_coeff_t q) {
     return PolyFromCoeff(p * q);
 }
 
+/**
+ * Mnoży dwa wielomiany: nie stały i stały (który jest współczynnikiem).
+ * @param[in] p : wielomian nie stały @f$p@f$
+ * @param[in] q : współczynnik @f$q@f$
+ * @return @f$p * q@f$
+ */
 static Poly PolyMulCoef(const Poly *p, poly_coeff_t q) {
     if (q == 0) {
         return PolyZero();
@@ -212,6 +278,12 @@ static Poly PolyMulCoef(const Poly *p, poly_coeff_t q) {
     return result;
 }
 
+/**
+ * Mnoży dwa wielomiany nie stałe.
+ * @param[in] p : wielomian nie stały @f$p@f$
+ * @param[in] q : wielomian nie stały @f$q@f$
+ * @return @f$p * q@f$
+ */
 static Poly PolyMulPoly(const Poly *p, const Poly *q) {
     size_t init_size = p->size * q->size;
     Mono *init_arr = (Mono *) malloc(sizeof(struct Mono) * init_size);
@@ -254,17 +326,29 @@ Poly PolyMul(const Poly *p, const Poly *q) {
     }
 }
 
+/**
+ * Dodaje dwa wielomiany stałe (które są współczynnikiem).
+ * @param[in] p : współczynnik @f$p@f$
+ * @param[in] q : współczynnik @f$q@f$
+ * @return @f$p + q@f$
+ */
 static Poly CoefAddCoef(poly_coeff_t p, poly_coeff_t q) {
     return PolyFromCoeff(p + q);
 }
 
+/**
+ * Dodaje dwa wielomiany: nie stały i stały (który jest współczynnikiem).
+ * @param[in] p : wielomian nie stały @f$p@f$
+ * @param[in] q : współczynnik @f$q@f$
+ * @return @f$p + q@f$
+ */
 static Poly PolyAddCoef(const Poly *p, poly_coeff_t q) {
     if (q == 0) {
         return PolyClone(p);
     }
     assert(p->size > 0);
     Poly result;
-    if (MonoGetExp(&p->arr[0]) == 0) {
+    if (MonoGetExp(&p->arr[0]) == 0) { //exps are sorted and unique -> coef can only appear in first position
         size_t current = 0;
 
         Poly sum;
@@ -294,6 +378,12 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q) {
     return result;
 }
 
+/**
+ * Dodaje dwa wielomiany nie stałe.
+ * @param[in] p : wielomian nie stały @f$p@f$
+ * @param[in] q : wielomian nie stały @f$q@f$
+ * @return @f$p + q@f$
+ */
 static Poly PolyAddPoly(const Poly *p, const Poly *q) {
     Poly result = PolyInit(p->size + q->size);
     size_t i = 0;
@@ -361,6 +451,12 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
     }
 }
 
+/**
+ * Wylicza @f$exp@f$-tą potęgę współczynnika @f$base@f$.
+ * @param[in] base : współczynnik @f$base@f$
+ * @param[in] exp : wykładnik @f$exp@f$
+ * @return @f$base^{exp}@f$
+ */
 //Source: https://www.geeksforgeeks.org/modular-exponentiation-power-in-modular-arithmetic/
 static poly_coeff_t Power(poly_coeff_t base, poly_exp_t exp) {
     poly_coeff_t result = 1;
