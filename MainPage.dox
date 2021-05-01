@@ -42,8 +42,8 @@ są zawsze upraszczane do @f$c@f$ i @f$0@f$), miał posortowane według wykładn
     zepsuty porządek jednomianów. Zera w wynikowym wielomianie są pomijane. Wynik jest w formie uproszczonej.
 - Odejmowanie
 
-    To samo so dodawanie wielomianu odwrotnego.
-- Tworzenie wielomianu odwrotnego
+    To samo co dodawanie wielomianu przeciwnego.
+- Tworzenie wielomianu przeciwnego
 - Obliczenie wartośći wielomianu w punkcie x
 
     Funkcja wstawia pod pierwszą zmienną wielomianu wartość @f$x@f$. Czyli dla każdego jednomianu tworzy

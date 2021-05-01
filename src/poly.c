@@ -44,7 +44,8 @@ static Poly PolyInit(size_t size) {
 
 Poly PolyClone(const Poly *p) {
     if (PolyIsCoeff(p)) {
-        return *p; //tutaj zostanie zwrócona kopia *p
+        /* tutaj zostanie zwrócona kopia *p*/
+        return *p;
     } else {
         Poly new_poly = PolyInit(p->size);
         for (size_t i = 0; i < p->size; ++i) {
@@ -65,6 +66,15 @@ Poly PolyClone(const Poly *p) {
  */
 static poly_exp_t MonoCompare(const void *lhs, const void *rhs) {
     return ((Mono *) lhs)->exp - ((Mono *) rhs)->exp;
+}
+
+/**
+ * Sprawdza, czy jednomian jest tożsamościowo równy zeru.
+ * @param[in] m : jednomian
+ * @return Czy jednomian jest równy zeru?
+ */
+static bool MonoIsZero(const Mono *m) {
+    return PolyIsZero(&m->p);
 }
 
 /**
@@ -105,12 +115,17 @@ static void PolyOptimize(Poly *p) {
         free(p->arr);
         p->arr = NULL;
     }
-//    else {
-//        p->arr = realloc(p->arr, sizeof(struct Mono) * p->size);
-//        if (p->arr == NULL){
-//            exit(ERROR_EXIT_STATUS);
-//        }
-//    }
+}
+
+/**
+ * Dodaje dwa jednomiany o tym samym wykładniku.
+ * @param[in] lhs : wielomian @f$lhs@f$
+ * @param[in] rhs : wielomian @f$rhs@f$
+ * @return @f$lhs + rhs@f$
+ */
+static Mono MonoAdd(const Mono *lhs, const Mono *rhs) {
+    assert(lhs->exp == rhs->exp);
+    return (Mono) {.p = PolyAdd(&lhs->p, &rhs->p), .exp = lhs->exp};
 }
 
 Poly PolyAddMonos(size_t count, const Mono monos[]) {
@@ -129,23 +144,27 @@ Poly PolyAddMonos(size_t count, const Mono monos[]) {
      * Funkcje takie jak mnożenie, które psują porządek, będą musiały go przywrócić*/
     qsort(monos_copy, count, sizeof(struct Mono), MonoCompare);
 
-    /*Od tego momentu dla każdego wykładnika istnieje dokładnie jeden jednomian w wielomianie z takim wykładnikiem*/
+    /* Od tego momentu dla każdego wykładnika istnieje dokładnie jeden jednomian w wielomianie z takim wykładnikiem*/
     size_t current = 0;
     for (size_t next = 1; next < count; ++next) {
-        if (MonoGetExp(&monos_copy[next]) != MonoGetExp(&monos_copy[current])) { //nowy unikalny wykładnik
+        /* nowy unikalny wykładnik*/
+        if (MonoGetExp(&monos_copy[next]) != MonoGetExp(&monos_copy[current])) {
             if (MonoIsZero(&monos_copy[current])) {
-                monos_copy[current] = monos_copy[next]; //pomijamy zero (zamieniamy na nowy jednomian)
+                /* pomijamy zero (zamieniamy na nowy jednomian)*/
+                monos_copy[current] = monos_copy[next];
             } else {
-                monos_copy[++current] = monos_copy[next]; //dodaj nowy jednomian
+                /* dodaj nowy jednomian*/
+                monos_copy[++current] = monos_copy[next];
             }
         } else {
             Mono sum = MonoAdd(&monos_copy[current], &monos_copy[next]);
             MonoDestroy(&monos_copy[current]);
             MonoDestroy(&monos_copy[next]);
-            monos_copy[current] = sum; //może pojawić się zero, pozbędziemy się go w następnej iteracji
+            /* może pojawić się zero, pozbędziemy się go w następnej iteracji*/
+            monos_copy[current] = sum;
         }
     }
-    /*Musimy pozbyć się ostatniego zera. Jeśli ostatnie zero jest jedynym elementem zostawiamy go*/
+    /* Musimy pozbyć się ostatniego zera. Jeśli ostatnie zero jest jedynym elementem zostawiamy go*/
     if (current != 0 && MonoIsZero(&monos_copy[current])) {
         current--;
     }
@@ -163,6 +182,15 @@ Poly PolyAddMonos(size_t count, const Mono monos[]) {
  */
 static poly_exp_t max(poly_exp_t lhs, poly_exp_t rhs) {
     return (lhs > rhs) ? lhs : rhs;
+}
+
+/**
+ * Zwraca stopień jednomianu.
+ * @param[in] m : jednomian
+ * @return stopień jednomianu @p m
+ */
+static poly_exp_t MonoDeg(const Mono *m) {
+    return (PolyDeg(&m->p) + MonoGetExp(m));
 }
 
 /**
@@ -204,9 +232,20 @@ poly_exp_t PolyDeg(const Poly *p) {
     }
 }
 
+/**
+ * Sprawdza równość dwóch jednomianów.
+ * @param[in] rhs : jednomian @f$rhs@f$
+ * @param[in] lhs : jednomian @f$lhs@f$
+ * @return @f$rhs = lhs@f$
+ */
+static bool MonoIsEq(const Mono *lhs, const Mono *rhs) {
+    return MonoGetExp(lhs) == MonoGetExp(rhs) && PolyIsEq(&lhs->p, &rhs->p);
+}
+
 bool PolyIsEq(const Poly *p, const Poly *q) {
     if (PolyIsCoeff(p) == PolyIsCoeff(q)) {
-        if (PolyIsCoeff(p)) { //p i q to oba współczynniki
+        /* p i q to oba współczynniki*/
+        if (PolyIsCoeff(p)) {
             return p->coeff == q->coeff;
         } else if (p->size != q->size) {
             return false;
@@ -265,7 +304,8 @@ static Poly PolyMulCoef(const Poly *p, poly_coeff_t q) {
         } else {
             mul = PolyMulCoef(&p->arr[i].p, q);
         }
-        if (!PolyIsZero(&mul)) { //pomijamy zero
+        /* pomijamy zero*/
+        if (!PolyIsZero(&mul)) {
             Mono mono = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]));
             result.arr[result.size++] = mono;
         }
@@ -274,8 +314,10 @@ static Poly PolyMulCoef(const Poly *p, poly_coeff_t q) {
          * 2.1(mul nie zero) result jest właścicielem mono
          * 2.2(mul zero) -> nie ma tablicy jednomianów -> nie używamy destroy*/
     }
-    if (result.size == 0) { //były tylko zera, nic nie zostało zapisane do wyniku
-        free(result.arr); //nie używamy funkcji destroy, ponieważ wynik jest niezainicjalizowaną wartością
+    /* były tylko zera, nic nie zostało zapisane do wyniku*/
+    if (result.size == 0) {
+        /* nie używamy funkcji destroy, ponieważ wynik jest niezainicjalizowaną wartością*/
+        free(result.arr);
         return PolyZero();
     }
     PolyOptimize(&result);
@@ -298,7 +340,8 @@ static Poly PolyMulPoly(const Poly *p, const Poly *q) {
     for (size_t i = 0; i < p->size; ++i) {
         for (size_t j = 0; j < q->size; ++j) {
             Poly mul = PolyMul(&p->arr[i].p, &q->arr[j].p);
-            if (!PolyIsZero(&mul)) { //pomijamy zero
+            /* pomijamy zero*/
+            if (!PolyIsZero(&mul)) {
                 init_arr[current] = MonoFromPoly(&mul, MonoGetExp(&p->arr[i]) + MonoGetExp(&q->arr[j]));
                 current++;
             }
@@ -308,7 +351,7 @@ static Poly PolyMulPoly(const Poly *p, const Poly *q) {
     if (current == 0) {
         result = PolyZero();
     } else {
-        //używamy tej funkcji, aby przywrócić zepsuty porządek i unikalność każdego wykładnika
+        /* używamy tej funkcji, aby przywrócić zepsuty porządek i unikalność każdego wykładnika*/
         result = PolyAddMonos(current, init_arr);
     }
     free(init_arr);
@@ -353,7 +396,7 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q) {
     }
     assert(p->size > 0);
     Poly result;
-    /*wykładniki są posortowane i unikalne -> współczynnik może pojawić się tylko na pierwszej pozycji*/
+    /* wykładniki są posortowane i unikalne -> współczynnik może pojawić się tylko na pierwszej pozycji*/
     if (MonoGetExp(&p->arr[0]) == 0) {
         size_t current = 0;
 
@@ -368,7 +411,8 @@ static Poly PolyAddCoef(const Poly *p, poly_coeff_t q) {
             result = PolyInit(p->size);
             result.arr[current++] = mono;
         } else {
-            result = PolyInit(p->size - 1); //pomijamy zero
+            /* pomijamy zero*/
+            result = PolyInit(p->size - 1);
         }
         for (size_t i = 1; i < p->size; ++i) {
             result.arr[current++] = MonoClone(&p->arr[i]);
@@ -420,20 +464,22 @@ static Poly PolyAddPoly(const Poly *p, const Poly *q) {
             j++;
         }
     }
-    /*Przypadek i > p->size && j = q->size)*/
+    /* Przypadek i > p->size && j = q->size)*/
     while (i < p->size) {
         result.arr[current] = MonoClone(&p->arr[i]);
         i++;
         current++;
     }
-    /*Przypadek i = p->size && j > q->size)*/
+    /* Przypadek i = p->size && j > q->size)*/
     while (j < q->size) {
         result.arr[current] = MonoClone(&q->arr[j]);
         j++;
         current++;
     }
-    if (current == 0) { //były tylko zera, nic nie zostało zapisane do wyniku
-        free(result.arr); //nie używamy funkcji destroy, ponieważ wynik jest niezainicjalizowaną wartością
+    /* były tylko zera, nic nie zostało zapisane do wyniku*/
+    if (current == 0) {
+        /* nie używamy funkcji destroy, ponieważ wynik jest niezainicjalizowaną wartością*/
+        free(result.arr);
         return PolyZero();
     }
     result.size = current;
@@ -459,20 +505,20 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
 
 /**
  * Wylicza @f$exp@f$-tą potęgę współczynnika @f$base@f$.
+ * Źródło: https://www.geeksforgeeks.org/modular-exponentiation-power-in-modular-arithmetic/
  * @param[in] base : współczynnik @f$base@f$
  * @param[in] exp : wykładnik @f$exp@f$
  * @return @f$base^{exp}@f$
  */
-//Źródło: https://www.geeksforgeeks.org/modular-exponentiation-power-in-modular-arithmetic/
 static poly_coeff_t Power(poly_coeff_t base, poly_exp_t exp) {
     poly_coeff_t result = 1;
     while (exp > 0) {
-        //Jeśli exp jest nieparzysty, mnożymy base i result
+        /* Jeśli exp jest nieparzysty, mnożymy base i result*/
         if ((exp & 1) != 0) {
             result *= base;
         }
-        //teraz exp musi być parzysty
-        exp = exp >> 1; // exp = exp/2
+        /* teraz exp musi być parzysty*/
+        exp = exp >> 1;
         base *= base;
     }
     return result;
@@ -491,9 +537,12 @@ Poly PolyAt(const Poly *p, poly_coeff_t x) {
     for (size_t i = 0; i < p->size; ++i) {
         poly_exp_t previous_exp = current_exp;
         current_exp = MonoGetExp(&p->arr[i]);
-        poly_exp_t exp_difference = current_exp - previous_exp;//m-n
 
-        x_power_value *= Power(x, exp_difference); //x^n * x^(m-n)
+        /* m - n*/
+        poly_exp_t exp_difference = current_exp - previous_exp;
+
+        /* x^n * x^(m - n)*/
+        x_power_value *= Power(x, exp_difference);
 
         Poly current_mono_evaluated;
         if (PolyIsCoeff(&p->arr[i].p)) {
