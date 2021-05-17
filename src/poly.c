@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /**
  * Kod zakończenia.
@@ -558,4 +559,26 @@ Poly PolyAt(const Poly *p, poly_coeff_t x) {
         result = new_result;
     }
     return result;
+}
+
+void MonoPrint(const Mono *m) {
+    printf("(");
+    PolyPrint(&m->p);
+    printf(",");
+    printf("%d", m->exp);
+    printf(")");
+}
+
+void PolyPrint(const Poly *p){
+    if (PolyIsCoeff(p)) {
+        printf("%ld", p->coeff);
+    }
+    else{
+        assert(p->size > 0);
+        MonoPrint(&p->arr[0]);
+        for (size_t i = 1; i < p->size; ++i) {
+            printf("+");
+            MonoPrint(&p->arr[i]);
+        }
+    }
 }
