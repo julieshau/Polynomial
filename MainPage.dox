@@ -53,4 +53,52 @@ są zawsze upraszczane do @f$c@f$ i @f$0@f$), miał posortowane według wykładn
 
     Sprawdzanie równości jednomianów należących do wielomianów.
 - Obliczanie stopnia wielomianu
+
+### Kalkulator
+
+Program kalkulatora czyta dane wierszami ze standardowego wejścia. Wiersz zawiera wielomian lub polecenie do wykonania.
+
+Wielomian reprezentujemy jako stałą, jednomian lub sumę jednomianów. Stała jest liczbą całkowitą.
+Jednomian reprezentujemy jako parę @f$(coeff,exp)@f$, gdzie współczynnik @f$coeff@f$ jest wielomianem, a wykładnik
+exp jest liczbą nieujemną. Do wyrażenia sumy używamy znaku @f$+@f$. Jeśli wiersz zawiera wielomian,
+to program wstawia go na stos. Przykłady poprawnych wielomianów:
+
+@f$-2@f$
+
+@f$(3,1)+(((4,4),100),2)@f$
+
+Kalkulator wykonuje następujące polecenia:
+
+- ZERO – wstawia na wierzchołek stosu wielomian tożsamościowo równy zeru;
+- IS_COEFF – sprawdza, czy wielomian na wierzchołku stosu jest współczynnikiem – wypisuje na standardowe wyjście 0 lub 1;
+- IS_ZERO – sprawdza, czy wielomian na wierzchołku stosu jest tożsamościowo równy zeru – wypisuje na standardowe wyjście 0 lub 1;
+- CLONE – wstawia na stos kopię wielomianu z wierzchołka;
+- ADD – dodaje dwa wielomiany z wierzchu stosu, usuwa je i wstawia na wierzchołek stosu ich sumę;
+- MUL – mnoży dwa wielomiany z wierzchu stosu, usuwa je i wstawia na wierzchołek stosu ich iloczyn;
+- NEG – neguje wielomian na wierzchołku stosu;
+- SUB – odejmuje od wielomianu z wierzchołka wielomian pod wierzchołkiem, usuwa je i wstawia na wierzchołek stosu różnicę;
+- IS_EQ – sprawdza, czy dwa wielomiany na wierzchu stosu są równe – wypisuje na standardowe wyjście 0 lub 1;
+- DEG – wypisuje na standardowe wyjście stopień wielomianu (−1 dla wielomianu tożsamościowo równego zeru);
+- DEG_BY idx – wypisuje na standardowe wyjście stopień wielomianu ze względu na zmienną o numerze @f$idx@f$ (−1 dla wielomianu tożsamościowo równego zeru);
+- AT x – wylicza wartość wielomianu w punkcie @f$x@f$, usuwa wielomian z wierzchołka i wstawia na stos wynik operacji;
+- PRINT – wypisuje na standardowe wyjście wielomian z wierzchołka stosu;
+- POP – usuwa wielomian z wierzchołka stosu.
+
+### Szczególy implementacji kalkulatora
+
+- Stack
+
+    Stos wielomianów. Zaimplementowany za pomocą tablicy dynamicznej. Dostępne są wszystkie podstawowe funkcje stosa.
+    Przyjmuje na własność wielomiany.
+- Parser
+
+    Przetwarza wierszy ze standardowego wejśćia. Jeśli nie ma więcej znakówów do odczytania(EOF na końcu wiersza),
+    umieszcza EOF z powrotem. Dostępnych jest również kilka przydatnych funkcji : PeekChar, SkipLine, PrintError
+- Executor
+
+    Wykonuje polecenia kalkulatora
+- Vector
+
+    Pomocnicza dynamiczna tablica jednomianów.
+
 */
