@@ -309,7 +309,7 @@ static bool OverflowTest(void) {
   return res;
 }
 
-int main() {
+int check_example() {
   assert(SimpleAddTest());
   assert(SimpleAddMonosTest());
   assert(SimpleMulTest());
@@ -320,4 +320,5 @@ int main() {
   assert(SimpleIsEqTest());
   assert(SimpleAtTest());
   assert(OverflowTest());
+  return 0;
 }
