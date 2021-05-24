@@ -5,8 +5,8 @@
   @copyright Uniwersytet Warszawski
   @date 2021
 */
-#ifndef __STACK_H__
-#define __STACK_H__
+#ifndef STACK_H
+#define STACK_H
 
 #include "poly.h"
 
@@ -16,7 +16,7 @@
 typedef struct Stack {
     size_t size; ///< komentarz
     size_t capacity;
-    Poly** array;
+    Poly* array;
 } Stack;
 
 /**
@@ -52,21 +52,21 @@ size_t StackGetSize(Stack* s);
  * @param[in] s : stos
  * @return wielomian z wierzchołka stosu
  */
-Poly* Pop(Stack* s);
+Poly Pop(Stack* s);
 
 /**
  * Zwraca wielomian z wierzchołka stosu
  * @param[in] s : stos
  * @return wielomian z wierzchołka stosu
  */
-Poly* Top(const Stack* s);
+Poly Top(const Stack* s);
 
 /**
  * Wstawia wielomian na stos
  * @param[in] s : stos
  * @param[in] p : wielomian
  */
-void Push(Stack* s, Poly* p);//?
+void Push(Stack* s, Poly* p);
 
 /**
  * Usuwa stos z pamięci.
@@ -74,4 +74,4 @@ void Push(Stack* s, Poly* p);//?
  */
 void StackDestroy(Stack* s);
 
-#endif /* __STACK_H__ */
+#endif

@@ -88,8 +88,14 @@ static inline bool PolyIsZero(const Poly *p);
  * @return jednomian @f$px_i^n@f$
  */
 static inline Mono MonoFromPoly(const Poly *p, poly_exp_t n) {
-    assert(n == 0 || !PolyIsZero(p));
-    return (Mono) {.p = *p, .exp = n};
+    //assert(n == 0 || !PolyIsZero(p));
+    if (PolyIsZero(p)){
+        return (Mono) {.p = *p, .exp = 0};
+    }
+    else{
+        return (Mono) {.p = *p, .exp = n};
+    }
+    //return (Mono) {.p = *p, .exp = n};
 }
 
 /**

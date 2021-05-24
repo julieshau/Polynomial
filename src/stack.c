@@ -13,7 +13,7 @@
 #define CAPACITY_CHANGE 2
 
 Stack StackCreate() {
-    Poly** init_arr = (Poly**) malloc(sizeof(Poly*) * STACK_INIT_CAPACITY);
+    Poly* init_arr = (Poly*) malloc(sizeof(Poly) * STACK_INIT_CAPACITY);
     if (init_arr == NULL){
         exit(ERROR_EXIT_STATUS);
     }
@@ -32,12 +32,12 @@ size_t StackGetSize(Stack* s){
     return s->size;
 }
 
-Poly* Pop(Stack* s){
+Poly Pop(Stack* s){
     assert(!StackIsEmpty(s));
     return s->array[--(s->size)];
 }
 
-Poly* Top(const Stack* s){
+Poly Top(const Stack* s){
     assert(!StackIsEmpty(s));
     return s->array[s->size - 1];
 }
@@ -48,7 +48,7 @@ Poly* Top(const Stack* s){
  */
 static void StackResize(Stack* s){
     s->capacity *= CAPACITY_CHANGE;
-    Poly** new_array = (Poly**) realloc(s->array, sizeof(Poly*) * s->capacity);
+    Poly* new_array = (Poly*) realloc(s->array, sizeof(Poly) * s->capacity);
     if (new_array == NULL){
         exit(ERROR_EXIT_STATUS);
     }
@@ -59,12 +59,12 @@ void Push(Stack* s, Poly* p){
     if (StackIsFull(s)){
         StackResize(s);
     }
-    s->array[s->size++] = p; //no clone
+    s->array[s->size++] = *p; //no clone
 }
 
 void StackDestroy(Stack* s){
     for(size_t i = 0; i < s->size; ++i) {
-        PolyDestroy(s->array[i]);
+        PolyDestroy(&s->array[i]);
     }
     free(s->array); //no free s
 }
