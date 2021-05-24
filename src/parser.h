@@ -40,7 +40,6 @@ void SkipLine();
  * Wypisuje komunikaty o błędach na standardowe wyjście błędów.
  * @param[in] line_number : numer wiersza, w którym znajduje się błąd
  * @param[in] error : rodzaj błędu
- * @printto[stderr] `error`
  */
 void PrintError(int line_number, Errors error);
 
@@ -51,7 +50,6 @@ void PrintError(int line_number, Errors error);
  * Jeśli nie ma więcej znakówów do odczytania
  * (EOF na końcu wiersza), umieszcza EOF z powrotem w strumieniu wejściowym.
  * @param[in] line_number : numer wiersza, w którym znajduje się błąd
- * @param[in] error : rodzaj błędu
  * @param[out] command : polecenie
  * @param[out] param : parametr polecenia
  * @return Czy się udało sparsować wiersz?

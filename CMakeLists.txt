@@ -31,7 +31,6 @@ set(SOURCE_FILES
     src/executor.c
     src/vector.h
     src/vector.c
-    src/poly_example.c
     src/calc.c)
 
 # Wskazujemy plik wykonywalny.

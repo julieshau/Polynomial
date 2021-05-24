@@ -10,8 +10,14 @@
 
 #include <stdlib.h>
 
+/** Początkowa pojemność wektora */
 #define VECTOR_INIT_CAPACITY 4
+/**
+ * Kod zakończenia.
+ * Jeśli wystąpi błąd krytyczny, np. zabraknie pamięci, program powinien zakończyć się awaryjnie kodem 1.
+*/
 #define ERROR_EXIT_STATUS 1
+/** Zmiana pojemnośći */
 #define CAPACITY_CHANGE 2
 
 Vector VectorCreate() {

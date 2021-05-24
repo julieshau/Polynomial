@@ -309,7 +309,8 @@ bool ParseCommand(int line_number, Commands *command, CommandParams *param) {
  * Przetwarza wiersz ze standardowego wejśćia i zwraca wartość współczynnika jednomianu.
  * Jeśli nie ma więcej znakówów do odczytania
  * (EOF na końcu wiersza), umieszcza EOF z powrotem w strumieniu wejściowym.
- * @param[out] var_idx : wartość współczynnika jednomianu
+ * @param[out] coeff : wartość współczynnika jednomianu
+ * @param[in] type : typ wielomianu
  * @return Czy się udało sparsować wiersz?
  */
 static bool ParseCoeff(poly_coeff_t *coeff, PolyType type) {
@@ -380,7 +381,7 @@ static bool ParseCoeff(poly_coeff_t *coeff, PolyType type) {
  * (EOF na końcu wiersza), umieszcza EOF z powrotem w strumieniu wejściowym.
  * @param[in] line_number : numer wiersza, w którym znajduje się błąd
  * @param[out] poly : wielomian
- * @param[in] line_number : typ wielomianu
+ * @param[in] type : typ wielomianu
  * @return Czy się udało sparsować wiersz?
  */
 static bool ParsePolyHelper(int line_number, Poly *poly, PolyType type) {
@@ -439,7 +440,7 @@ static bool ParsePolyHelper(int line_number, Poly *poly, PolyType type) {
  * Przetwarza wiersz ze standardowego wejśćia i zwraca wartość wykładnika jednomianu.
  * Jeśli nie ma więcej znakówów do odczytania
  * (EOF na końcu wiersza), umieszcza EOF z powrotem w strumieniu wejściowym.
- * @param[out] var_idx : wartość wykładnika jednomianu
+ * @param[out] exp : wartość wykładnika jednomianu
  * @return Czy się udało sparsować wiersz?
  */
 static bool ParseExp(poly_exp_t *exp) {

@@ -229,14 +229,12 @@ Poly PolyAt(const Poly *p, poly_coeff_t x);
 /**
  * Wypisuje na standardowe wyjście jednomian.
  * @param[in] m : jednomian
- * @printto[stdout] `m`
  */
 void MonoPrint(const Mono *m);
 
 /**
  * Wypisuje na standardowe wyjście wielomian.
  * @param[in] p : wielomian
- * @printto[stdout] `p`
  */
 void PolyPrint(const Poly *p);
 
