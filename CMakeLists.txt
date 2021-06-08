@@ -33,8 +33,18 @@ set(SOURCE_FILES
     src/vector.c
     src/calc.c)
 
+# Wskazujemy pliki źródłowe testóœ.
+set(TEST_SOURCE_FILES
+        src/poly.c
+        src/poly.h
+        src/poly_example.c)
+
 # Wskazujemy plik wykonywalny.
 add_executable(poly ${SOURCE_FILES})
+
+# Wskazujemy plik wykonywalny testów biblioteki.
+add_executable(test EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES})
+set_target_properties(test PROPERTIES OUTPUT_NAME poly_test)
 
 # Dodajemy obsługę Doxygena: sprawdzamy, czy jest zainstalowany i jeśli tak to:
 find_package(Doxygen)

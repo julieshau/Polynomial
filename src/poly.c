@@ -129,8 +129,46 @@ static Mono MonoAdd(const Mono *lhs, const Mono *rhs) {
     return (Mono) {.p = PolyAdd(&lhs->p, &rhs->p), .exp = lhs->exp};
 }
 
+Poly PolyOwnMonos(size_t count, Mono *monos){
+    if (count == 0 || monos == NULL) {
+        return PolyZero();
+    }
+    /* Od tego momentu wszystkie jednomiany w wielomianie będą sortowane według wykładnika.
+     * Funkcje takie jak mnożenie, które psują porządek, będą musiały go przywrócić*/
+    qsort(monos, count, sizeof(struct Mono), MonoCompare);
+
+    /* Od tego momentu dla każdego wykładnika istnieje dokładnie jeden jednomian w wielomianie z takim wykładnikiem*/
+    size_t current = 0;
+    for (size_t next = 1; next < count; ++next) {
+        /* nowy unikalny wykładnik*/
+        if (MonoGetExp(&monos[next]) != MonoGetExp(&monos[current])) {
+            if (MonoIsZero(&monos[current])) {
+                /* pomijamy zero (zamieniamy na nowy jednomian)*/
+                monos[current] = monos[next];
+            } else {
+                /* dodaj nowy jednomian*/
+                monos[++current] = monos[next];
+            }
+        } else {
+            Mono sum = MonoAdd(&monos[current], &monos[next]);
+            MonoDestroy(&monos[current]);
+            MonoDestroy(&monos[next]);
+            /* może pojawić się zero, pozbędziemy się go w następnej iteracji*/
+            monos[current] = sum;
+        }
+    }
+    /* Musimy pozbyć się ostatniego zera. Jeśli ostatnie zero jest jedynym elementem zostawiamy go*/
+    if (current != 0 && MonoIsZero(&monos[current])) {
+        current--;
+    }
+
+    Poly result = (Poly) {.size = ++current, .arr = monos};
+    PolyOptimize(&result);
+    return result;
+}
+
 Poly PolyAddMonos(size_t count, const Mono monos[]) {
-    if (count == 0) {
+    if (count == 0 || monos == NULL) {
         return PolyZero();
     }
     /* Przejmujemy na własność zawartość tablicy monos(NIE TABLICĘ!).
@@ -140,39 +178,23 @@ Poly PolyAddMonos(size_t count, const Mono monos[]) {
         exit(ERROR_EXIT_STATUS);
     }
     memcpy(monos_copy, monos, sizeof(struct Mono) * count);
+    return PolyOwnMonos(count, monos_copy);
+}
 
-    /* Od tego momentu wszystkie jednomiany w wielomianie będą sortowane według wykładnika.
-     * Funkcje takie jak mnożenie, które psują porządek, będą musiały go przywrócić*/
-    qsort(monos_copy, count, sizeof(struct Mono), MonoCompare);
-
-    /* Od tego momentu dla każdego wykładnika istnieje dokładnie jeden jednomian w wielomianie z takim wykładnikiem*/
-    size_t current = 0;
-    for (size_t next = 1; next < count; ++next) {
-        /* nowy unikalny wykładnik*/
-        if (MonoGetExp(&monos_copy[next]) != MonoGetExp(&monos_copy[current])) {
-            if (MonoIsZero(&monos_copy[current])) {
-                /* pomijamy zero (zamieniamy na nowy jednomian)*/
-                monos_copy[current] = monos_copy[next];
-            } else {
-                /* dodaj nowy jednomian*/
-                monos_copy[++current] = monos_copy[next];
-            }
-        } else {
-            Mono sum = MonoAdd(&monos_copy[current], &monos_copy[next]);
-            MonoDestroy(&monos_copy[current]);
-            MonoDestroy(&monos_copy[next]);
-            /* może pojawić się zero, pozbędziemy się go w następnej iteracji*/
-            monos_copy[current] = sum;
-        }
+Poly PolyCloneMonos(size_t count, const Mono monos[]) {
+    if (count == 0 || monos == NULL) {
+        return PolyZero();
     }
-    /* Musimy pozbyć się ostatniego zera. Jeśli ostatnie zero jest jedynym elementem zostawiamy go*/
-    if (current != 0 && MonoIsZero(&monos_copy[current])) {
-        current--;
+    /* Przejmujemy na własność zawartość tablicy monos(NIE TABLICĘ!).
+     * Więc potrzebujemy kopii tablicy*/
+    Mono *monos_copy = (Mono *) malloc(sizeof(struct Mono) * count);
+    if (monos_copy == NULL) {
+        exit(ERROR_EXIT_STATUS);
     }
-
-    Poly result = (Poly) {.size = ++current, .arr = monos_copy};
-    PolyOptimize(&result);
-    return result;
+    for (size_t i = 0; i < count; ++i) {
+        monos_copy[i] = MonoClone(&monos[i]);
+    }
+    return PolyOwnMonos(count, monos_copy);
 }
 
 /**
@@ -506,7 +528,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
 
 /**
  * Wylicza @f$exp@f$-tą potęgę współczynnika @f$base@f$.
- * Źródło: https://www.geeksforgeeks.org/modular-exponentiation-power-in-modular-arithmetic/
+ * Źródło: https://www.geeksforgeeks.org/modular-exponentiation-PolyPow-in-modular-arithmetic/
  * @param[in] base : współczynnik @f$base@f$
  * @param[in] exp : wykładnik @f$exp@f$
  * @return @f$base^{exp}@f$
@@ -581,4 +603,72 @@ void PolyPrint(const Poly *p){
             MonoPrint(&p->arr[i]);
         }
     }
+}
+
+/**
+ * Wylicza @f$exp@f$-tą potęgę wielomianu @f$p@f$.
+ * @param[in] p : wielomian
+ * @param[in] exp : wykładnik @f$exp@f$
+ * @return @f$p^{exp}@f$
+ */
+Poly PolyPow(const Poly *p, poly_exp_t exp){
+    Poly temp;
+    if( exp == 0)
+        return PolyFromCoeff(1);
+    temp = PolyPow(p, exp / 2);
+    Poly result = PolyMul(&temp, &temp);
+    PolyDestroy(&temp);
+    if (exp % 2 == 0){
+        return result;
+    }
+    else {
+        Poly poly = PolyMul(p, &result);
+        PolyDestroy(&result);
+        return poly;
+    }
+}
+
+Poly PolyPow2(const Poly *p, poly_exp_t exp){
+    Poly result = PolyFromCoeff(1);
+    while (exp > 0) {
+        Poly r = PolyMul(&result, p);
+        PolyDestroy(&result);
+        result = r;
+        exp--;
+    }
+    return result;
+}
+
+Poly PolyCompose(const Poly *p, size_t count, const Poly q[]){
+    if (PolyIsCoeff(p)) {
+        return *p;
+    }
+    if (count == 0) {
+        return PolyAt(p, 0);
+    }
+    Poly* temp = malloc(p->size * sizeof(Poly));
+    if (temp == NULL) {
+        exit(ERROR_EXIT_STATUS);
+    }
+    for (size_t i = 0; i < p->size; i++) {
+        Poly inner_compose = PolyCompose(&p->arr[i].p, (count > 1) ? count - 1 : 0, q + (count > 1));
+        if (PolyIsZero(&inner_compose)) {
+            temp[i] = PolyZero();
+        }
+        else {
+            Poly poly_pow = PolyPow(&q[0], p->arr[i].exp);
+            temp[i] = PolyMul(&inner_compose, &poly_pow);
+            PolyDestroy(&poly_pow);
+        }
+        PolyDestroy(&inner_compose);
+    }
+    Poly result = temp[0];
+    for (size_t i = 1; i < p->size; i++) {
+        Poly temp_res = PolyAdd(&result, &temp[i]);
+        PolyDestroy(&result);
+        result = temp_res;
+        PolyDestroy(&temp[i]);
+    }
+    free(temp);
+    return result;
 }

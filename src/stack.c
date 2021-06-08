@@ -35,7 +35,7 @@ bool StackIsFull(const Stack *s) {
     return s->size == s->capacity;
 }
 
-size_t StackGetSize(Stack *s) {
+size_t StackGetSize(const Stack *s) {
     return s->size;
 }
 
@@ -51,7 +51,7 @@ Poly Top(const Stack *s) {
 
 /**
  * Realokuje pamięć w stosie.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  */
 static void StackResize(Stack *s) {
     s->capacity *= CAPACITY_CHANGE;

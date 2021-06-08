@@ -29,7 +29,8 @@ typedef enum Commands {
     DEG_BY,
     AT,
     PRINT,
-    POP
+    POP,
+    COMPOSE
 } Commands;
 
 /**
@@ -37,6 +38,7 @@ typedef enum Commands {
  */
 typedef union CommandParams {
     size_t var_idx; ///< parametr polecenia DEG_BY
+    size_t count; ///< parametr polecenia COMPOSE
     poly_coeff_t x; ///< parametr polecenia AT
 } CommandParams;
 
@@ -45,7 +47,7 @@ typedef union CommandParams {
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
  * @param[in] command : polecenie
  * @param[in] param : parametr polecenia
- * @param[in] stack : stos
+ * @param[in, out] stack : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 void ExecuteCommand(Commands command, CommandParams param, Stack *stack, int line_number);

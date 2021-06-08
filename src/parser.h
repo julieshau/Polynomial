@@ -21,7 +21,8 @@ typedef enum Errors {
     WRONG_VARIABLE,
     WRONG_VALUE,
     STACK_UNDERFLOW,
-    WRONG_POLY
+    WRONG_POLY,
+    WRONG_PARAMETER
 } Errors;
 
 /**

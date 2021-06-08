@@ -60,6 +60,9 @@ void PrintError(int line_number, Errors error) {
         case WRONG_POLY:
             fprintf(stderr, "ERROR %d WRONG POLY\n", line_number);
             break;
+        case WRONG_PARAMETER:
+            fprintf(stderr, "ERROR %d COMPOSE WRONG PARAMETER\n", line_number);
+            break;
         default:
             break;
     }
@@ -279,6 +282,9 @@ bool ParseCommand(int line_number, Commands *command, CommandParams *param) {
         } else if (strcmp(line, "AT") == 0) {
             PrintError(line_number, WRONG_VALUE);
             return false;
+        } else if (strcmp(line, "COMPOSE") == 0) {
+            PrintError(line_number, WRONG_PARAMETER);
+            return false;
         } else {
             PrintError(line_number, WRONG_COMMAND);
             return false;
@@ -294,6 +300,12 @@ bool ParseCommand(int line_number, Commands *command, CommandParams *param) {
             *command = AT;
             if (!ParseValue(&param->x) || c != ' ') {
                 PrintError(line_number, WRONG_VALUE);
+                return false;
+            }
+        } else if (strcmp(line, "COMPOSE") == 0) {
+            *command = COMPOSE;
+            if (!ParseVariable(&param->count) || c != ' ') {
+                PrintError(line_number, WRONG_PARAMETER);
                 return false;
             }
         } else {

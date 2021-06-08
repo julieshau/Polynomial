@@ -45,11 +45,11 @@ bool StackIsFull(const Stack *s);
  * @param[in] s : stos
  * @return rozmiar stosu
  */
-size_t StackGetSize(Stack *s);
+size_t StackGetSize(const Stack *s);
 
 /**
  * Usuwa wielomian z wierzchołka stosu.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @return wielomian z wierzchołka stosu
  */
 Poly Pop(Stack *s);
@@ -65,14 +65,14 @@ Poly Top(const Stack *s);
 /**
  * Wstawia wielomian na stos.
  * Przejmuje na własność zawartość struktury wskazywanej przez @p p.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] p : wielomian
  */
 void Push(Stack *s, Poly *p);
 
 /**
  * Usuwa stos z pamięci.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  */
 void StackDestroy(Stack *s);
 

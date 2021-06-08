@@ -15,7 +15,7 @@
 
 /**
  * Wykonuje polecenie ZERO. Modyfikuje stos.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  */
 static void ZeroCommand(Stack *s) {
     Poly p = PolyZero();
@@ -55,7 +55,7 @@ static void IsZeroCommand(const Stack *s, int line_number) {
 /**
  * Wykonuje polecenie CLONE. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 static void CloneCommand(Stack *s, int line_number) {
@@ -71,7 +71,7 @@ static void CloneCommand(Stack *s, int line_number) {
 /**
  * Wykonuje polecenie ADD. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 static void AddCommand(Stack *s, int line_number) {
@@ -90,7 +90,7 @@ static void AddCommand(Stack *s, int line_number) {
 /**
  * Wykonuje polecenie MUL. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 static void MulCommand(Stack *s, int line_number) {
@@ -109,7 +109,7 @@ static void MulCommand(Stack *s, int line_number) {
 /**
  * Wykonuje polecenie NEG. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 static void NegCommand(Stack *s, int line_number) {
@@ -126,7 +126,7 @@ static void NegCommand(Stack *s, int line_number) {
 /**
  * Wykonuje polecenie SUB. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 static void SubCommand(Stack *s, int line_number) {
@@ -193,7 +193,7 @@ static void DegByCommand(const Stack *s, int line_number, size_t var_idx) {
 /**
  * Wykonuje polecenie DEG_BY o podanym parametrze. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  * @param[in] x : parametr
  */
@@ -227,13 +227,38 @@ static void PrintCommand(const Stack *s, int line_number) {
 /**
  * Wykonuje polecenie POP. Modyfikuje stos.
  * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
- * @param[in] s : stos
+ * @param[in,out] s : stos
  * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
  */
 static void PopCommand(Stack *s, int line_number) {
     if (!StackIsEmpty(s)) {
         Poly p = Pop(s);
         PolyDestroy(&p);
+    } else {
+        PrintError(line_number, STACK_UNDERFLOW);
+    }
+}
+
+/**
+ * Wykonuje polecenie COMPOSE o podanym parametrze. Modyfikuje stos.
+ * Jeśli wykryje błąd, wypisuje komunikat o błędzie na standardowe wyjście błędów.
+ * @param[in,out] s : stos
+ * @param[in] line_number : numer wiersza, w którym znajduje się polecenie
+ * @param[in] k : parametr
+ */
+static void ComposeCommand(Stack *s, int line_number, size_t k) {
+    if (StackGetSize(s) > k) {
+        Poly q[k];
+        Poly p = Pop(s);
+        for (size_t i = 0; i < k; ++i) {
+            q[k - i - 1] = Pop(s);
+        }
+        Poly r = PolyCompose(&p, k, q);
+        Push(s, &r);
+        PolyDestroy(&p);
+        for (size_t i = 0; i < k; ++i) {
+            PolyDestroy(&q[i]);
+        }
     } else {
         PrintError(line_number, STACK_UNDERFLOW);
     }
@@ -282,6 +307,9 @@ void ExecuteCommand(Commands command, CommandParams param, Stack *stack, int lin
             break;
         case POP:
             PopCommand(stack, line_number);
+            break;
+        case COMPOSE:
+            ComposeCommand(stack, line_number, param.count);
             break;
         default:
             break;

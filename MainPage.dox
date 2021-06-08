@@ -53,6 +53,9 @@ są zawsze upraszczane do @f$c@f$ i @f$0@f$), miał posortowane według wykładn
 
     Sprawdzanie równości jednomianów należących do wielomianów.
 - Obliczanie stopnia wielomianu
+- Składanie wielomianów
+
+    Implementacja z funkcją pomocniczą, która wylicza @f$exp@f$-tą potęgę wielomianu @f$p@f$
 
 ### Kalkulator
 
@@ -83,6 +86,8 @@ Kalkulator wykonuje następujące polecenia:
 - AT x – wylicza wartość wielomianu w punkcie @f$x@f$, usuwa wielomian z wierzchołka i wstawia na stos wynik operacji;
 - PRINT – wypisuje na standardowe wyjście wielomian z wierzchołka stosu;
 - POP – usuwa wielomian z wierzchołka stosu.
+- COMPOSE - zdejmuje z wierzchołka stosu najpierw wielomian @f$p@f$, a potem kolejno wielomiany @f$q_{k - 1}, q_{k - 2}, \ldots, q_0@f$ i
+umieszcza na stosie wynik operacji złożenia
 
 ### Szczególy implementacji kalkulatora
 
@@ -100,5 +105,31 @@ Kalkulator wykonuje następujące polecenia:
 - Vector
 
     Pomocnicza dynamiczna tablica jednomianów.
+
+### Dodatek
+W interfejsie zostały przyjęte pewne konwencje, które mają ułatwić zarządzanie pamięcią. Dzięki tym konwencjom wiadomo,
+co jest właścicielem obiektu. Bycie właścicielem obiektu implikuje odpowiedzialność za zwolnienie używanej przez niego
+pamięci. W przypadku struktur Poly i Mono zwalnianie pamięci uzyskuje się poprzez wywołania odpowiednio funkcji PolyDestroy
+i MonoDestroy.
+
+Podstawową konwencją jest przekazywanie argumentów przez zmienną. Kod wołający funkcję, której przekazujemy argument
+przez zmienną, odpowiada za utworzenie odpowiedniego wskaźnika. Odpowiedzialność za zwolnienie tak uzyskanej pamięci
+nigdy nie przechodzi na wołaną funkcję.
+
+Przy niektórych funkcjach argumenty przechodzą na własność funkcji wołanej. Jest to zaznaczone w komentarzu
+opisującym daną funkcję. Funkcja przejmuje zawartość pamięci wskazywanej przez przekazany wskaźnik. Zazwyczaj jest to
+pojedyncza struktura (np. Poly, Mono) bądź tablica struktur.
+
+Wynikiem niektórych funkcji jest struktura (np. Poly, Mono). Przyjmujemy tu konwencję otrzymywania wyniku na własność,
+co oznacza, że kod wołający taką funkcję otrzymuję zwracaną wartość na własność.
+
+### Konstruowanie wielomianu z tablicy jednomianów
+Dostępne funkcje:
+
+- PolyOwnMonos - przejmuje na własność tablicę jednomianów i jej zawartość. Może dowolnie modyfikować
+zawartość tej pamięci.
+- PolyAddMonos - przejmuje na własność tablicę jednomianów (ale nie zawartość)
+- PolyCloneMonos - nie modyfikuje zawartości tablicy jednomianów. Jeśli jest to wymagane, to wykonuje pełne kopie
+jednomianów z tablicy
 
 */

@@ -28,14 +28,14 @@ Vector VectorCreate();
 
 /**
  * Usuwa wektor z pamięci.
- * @param[in] vector : wektor
+ * @param[in,out] vector : wektor
  */
 void VectorDestroy(Vector *vector);
 
 /**
  * Wstawia jednomian do wektora.
  * Przejmuje na własność zawartość struktury wskazywanej przez @p mono.
- * @param[in] vector : wektor
+ * @param[in,out] vector : wektor
  * @param[in] mono : jednomian
  */
 void VectorAdd(Vector *vector, Mono *mono);

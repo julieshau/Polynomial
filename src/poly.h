@@ -88,14 +88,12 @@ static inline bool PolyIsZero(const Poly *p);
  * @return jednomian @f$px_i^n@f$
  */
 static inline Mono MonoFromPoly(const Poly *p, poly_exp_t n) {
-    //assert(n == 0 || !PolyIsZero(p));
     if (PolyIsZero(p)){
         return (Mono) {.p = *p, .exp = 0};
     }
     else{
         return (Mono) {.p = *p, .exp = n};
     }
-    //return (Mono) {.p = *p, .exp = n};
 }
 
 /**
@@ -162,6 +160,29 @@ Poly PolyAdd(const Poly *p, const Poly *q);
  * @return wielomian będący sumą jednomianów
  */
 Poly PolyAddMonos(size_t count, const Mono monos[]);
+
+/**
+ * Sumuje listę jednomianów i tworzy z nich wielomian. Przejmuje na własność
+ * pamięć wskazywaną przez @p monos i jej zawartość. Może dowolnie modyfikować
+ * zawartość tej pamięci. Zakładamy, że pamięć wskazywana przez @p monos
+ * została zaalokowana na stercie. Jeśli @p count lub @p monos jest równe zeru
+ * (NULL), tworzy wielomian tożsamościowo równy zeru.
+ * @param[in] count : liczba jednomianów
+ * @param[in] monos : tablica jednomianów
+ * @return wielomian będący sumą jednomianów
+ */
+Poly PolyOwnMonos(size_t count, Mono *monos);
+
+/**
+ * Sumuje listę jednomianów i tworzy z nich wielomian. Nie modyfikuje zawartości
+ * tablicy @p monos. Jeśli jest to wymagane, to wykonuje pełne kopie jednomianów
+ * z tablicy @p monos. Jeśli @p count lub @p monos jest równe zeru (NULL),
+ * tworzy wielomian tożsamościowo równy zeru.
+ * @param[in] count : liczba jednomianów
+ * @param[in] monos : tablica jednomianów
+ * @return wielomian będący sumą jednomianów
+ */
+Poly PolyCloneMonos(size_t count, const Mono monos[]);
 
 /**
  * Mnoży dwa wielomiany.
@@ -237,5 +258,15 @@ void MonoPrint(const Mono *m);
  * @param[in] p : wielomian
  */
 void PolyPrint(const Poly *p);
+
+/**
+ * Składa wielomiany. Dany jest wielomian @f$p(x_0, x_1, ..., x_k)@f$, to
+ * funkcja zwraca @f$p(q_0, q_1, \ldots , q_{count - 1}, 0 \ldots, 0)@f$.
+ * @param[in] p : wielomian
+ * @param[in] count : liczba wielomianów
+ * @param[in] q : tablica wielomianów
+ * @return @f$p(x[0], x[1], .., x[count - 1], 0, 0 \ldots, 0)@f$
+ */
+Poly PolyCompose(const Poly *p, size_t count, const Poly q[]);
 
 #endif /* __POLY_H__ */

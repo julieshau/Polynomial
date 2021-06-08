@@ -37,7 +37,7 @@ void VectorDestroy(Vector *vector) {
 
 /**
  * Realokuje pamięć w wektorze.
- * @param[in] vector : wektor
+ * @param[in,out] vector : wektor
  */
 static void VectorResize(Vector *vector) {
     vector->capacity *= CAPACITY_CHANGE;
