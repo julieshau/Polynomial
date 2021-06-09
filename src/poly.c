@@ -628,23 +628,19 @@ Poly PolyPow(const Poly *p, poly_exp_t exp){
     }
 }
 
-Poly PolyPow2(const Poly *p, poly_exp_t exp){
-    Poly result = PolyFromCoeff(1);
-    while (exp > 0) {
-        Poly r = PolyMul(&result, p);
-        PolyDestroy(&result);
-        result = r;
-        exp--;
-    }
-    return result;
-}
-
 Poly PolyCompose(const Poly *p, size_t count, const Poly q[]){
     if (PolyIsCoeff(p)) {
         return *p;
     }
     if (count == 0) {
-        return PolyAt(p, 0);
+        Poly result = PolyClone(p);
+        Poly temp;
+        do {
+            temp = result;
+            result = PolyAt(&temp, 0);
+            PolyDestroy(&temp);
+        } while (!PolyIsCoeff(&result));
+        return result;
     }
     Poly* temp = malloc(p->size * sizeof(Poly));
     if (temp == NULL) {
