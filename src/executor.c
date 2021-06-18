@@ -249,12 +249,16 @@ static void PopCommand(Stack *s, int line_number) {
 static void ComposeCommand(Stack *s, int line_number, size_t k) {
     if (StackGetSize(s) > k) {
         Poly q[k];
+
         Poly p = Pop(s);
+        /* zdejmujemy z z wierzchołka stosu kolejno wielomiany q[k - 1], q[k - 2], …, q[0] */
         for (size_t i = 0; i < k; ++i) {
             q[k - i - 1] = Pop(s);
         }
         Poly r = PolyCompose(&p, k, q);
+
         Push(s, &r);
+
         PolyDestroy(&p);
         for (size_t i = 0; i < k; ++i) {
             PolyDestroy(&q[i]);

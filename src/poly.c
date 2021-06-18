@@ -129,7 +129,7 @@ static Mono MonoAdd(const Mono *lhs, const Mono *rhs) {
     return (Mono) {.p = PolyAdd(&lhs->p, &rhs->p), .exp = lhs->exp};
 }
 
-Poly PolyOwnMonos(size_t count, Mono *monos){
+Poly PolyOwnMonos(size_t count, Mono *monos) {
     if (count == 0 || monos == NULL) {
         return PolyZero();
     }
@@ -591,11 +591,10 @@ void MonoPrint(const Mono *m) {
     printf(")");
 }
 
-void PolyPrint(const Poly *p){
+void PolyPrint(const Poly *p) {
     if (PolyIsCoeff(p)) {
         printf("%ld", p->coeff);
-    }
-    else{
+    } else {
         assert(p->size > 0);
         MonoPrint(&p->arr[0]);
         for (size_t i = 1; i < p->size; ++i) {
@@ -611,24 +610,23 @@ void PolyPrint(const Poly *p){
  * @param[in] exp : wykładnik @f$exp@f$
  * @return @f$p^{exp}@f$
  */
-Poly PolyPow(const Poly *p, poly_exp_t exp){
+Poly PolyPow(const Poly *p, poly_exp_t exp) {
     Poly temp;
-    if( exp == 0)
+    if (exp == 0)
         return PolyFromCoeff(1);
     temp = PolyPow(p, exp / 2);
     Poly result = PolyMul(&temp, &temp);
     PolyDestroy(&temp);
-    if (exp % 2 == 0){
+    if (exp % 2 == 0) {
         return result;
-    }
-    else {
+    } else {
         Poly poly = PolyMul(p, &result);
         PolyDestroy(&result);
         return poly;
     }
 }
 
-Poly PolyCompose(const Poly *p, size_t count, const Poly q[]){
+Poly PolyCompose(const Poly *p, size_t count, const Poly q[]) {
     if (PolyIsCoeff(p)) {
         return *p;
     }
@@ -642,7 +640,7 @@ Poly PolyCompose(const Poly *p, size_t count, const Poly q[]){
         } while (!PolyIsCoeff(&result));
         return result;
     }
-    Poly* temp = malloc(p->size * sizeof(Poly));
+    Poly *temp = malloc(p->size * sizeof(Poly));
     if (temp == NULL) {
         exit(ERROR_EXIT_STATUS);
     }
@@ -650,8 +648,7 @@ Poly PolyCompose(const Poly *p, size_t count, const Poly q[]){
         Poly inner_compose = PolyCompose(&p->arr[i].p, (count > 1) ? count - 1 : 0, q + (count > 1));
         if (PolyIsZero(&inner_compose)) {
             temp[i] = PolyZero();
-        }
-        else {
+        } else {
             Poly poly_pow = PolyPow(&q[0], p->arr[i].exp);
             temp[i] = PolyMul(&inner_compose, &poly_pow);
             PolyDestroy(&poly_pow);

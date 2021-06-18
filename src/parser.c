@@ -130,12 +130,14 @@ static bool ParseVariable(size_t *var_idx) {
         }
         /* pojedyncze zero */
         if (find_zero && (c == '\n' || c == EOF)) {
-            line[i++] = '0';
+            line[i] = '0';
+            i++;
         }
 
         /* wczytujemy liczbę */
         while (i < NUMBER_MAX_LENGTH && isdigit(c)) {
-            line[i++] = (char) c;
+            line[i] = (char) c;
+            i++;
             c = getchar();
         }
         line[i] = '\0';
@@ -184,7 +186,8 @@ static bool ParseValue(poly_coeff_t *x) {
         int c;
 
         if (PeekChar() == '-') {
-            line[i++] = (char) getchar();
+            line[i] = (char) getchar();
+            i++;
         }
 
         /* pomijamy zera */
@@ -194,12 +197,14 @@ static bool ParseValue(poly_coeff_t *x) {
         }
         /* pojedyncze zero */
         if (find_zero && (c == '\n' || c == EOF)) {
-            line[i++] = '0';
+            line[i] = '0';
+            i++;
         }
 
         /* wczytujemy liczbę */
         while (i < NUMBER_MAX_LENGTH && isdigit(c)) {
-            line[i++] = (char) c;
+            line[i] = (char) c;
+            i++;
             c = getchar();
         }
         line[i] = '\0';
@@ -236,13 +241,15 @@ static bool ParseValue(poly_coeff_t *x) {
 
 bool ParseCommand(int line_number, Commands *command, CommandParams *param) {
     char line[COMMAND_MAX_LENGTH + 1];
+    memset(line,'0',COMMAND_MAX_LENGTH);
     param->x = NO_PARAMS;
     int i = 0;
     int c;
 
     c = getchar();
     while (i < COMMAND_MAX_LENGTH && (isupper(c) || c == '_')) {
-        line[i++] = (char) c;
+        line[i] = (char) c;
+        i++;
         c = getchar();
     }
     line[i] = '\0';
@@ -333,7 +340,8 @@ static bool ParseCoeff(poly_coeff_t *coeff, PolyType type) {
         int c;
 
         if (PeekChar() == '-') {
-            line[i++] = (char) getchar();
+            line[i] = (char) getchar();
+            i++;
         }
 
         /* pomijamy zera */
@@ -343,12 +351,14 @@ static bool ParseCoeff(poly_coeff_t *coeff, PolyType type) {
         }
         /* pojedyncze zero */
         if (find_zero && IsPolyEnd(c, type)) {
-            line[i++] = '0';
+            line[i] = '0';
+            i++;
         }
 
         /* wczytujemy liczbę */
         while (i < NUMBER_MAX_LENGTH && isdigit(c)) {
-            line[i++] = (char) c;
+            line[i] = (char) c;
+            i++;
             c = getchar();
         }
         line[i] = '\0';
@@ -469,12 +479,14 @@ static bool ParseExp(poly_exp_t *exp) {
         }
         /* pojedyncze zero */
         if (find_zero && c == ')') {
-            line[i++] = '0';
+            line[i] = '0';
+            i++;
         }
 
         /* wczytujemy liczbę */
         while (i < EXP_MAX_LENGTH && isdigit(c)) {
-            line[i++] = (char) c;
+            line[i] = (char) c;
+            i++;
             c = getchar();
         }
         line[i] = '\0';

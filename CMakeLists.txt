@@ -37,7 +37,7 @@ set(SOURCE_FILES
 set(TEST_SOURCE_FILES
         src/poly.c
         src/poly.h
-        src/poly_example.c)
+        src/poly_test.c)
 
 # Wskazujemy plik wykonywalny.
 add_executable(poly ${SOURCE_FILES})
